@@ -73,3 +73,14 @@ ter operadores associados a precedencia tipo Prolog, feito por nós
 - o parsec faz todo este processo, so que teriamos que aprender mt coisa, algo que nao foi ensinado
 - COMEÇAR A FAZER TUDO MENOS PARSER (se nao tivermos tempo de parser, ja temos cotaçao, podemos ter o compiler a funcionar) 
 ```
+
+
+-----
+
+22dez2023
+
+1. Lexer (also known as Lexical Analyzer): The first stage of the process. It takes the source code as input and breaks it down into a sequence of tokens. Tokens are the smallest meaningful units of the program, like keywords, identifiers, literals, operators, etc.
+
+2. Parser: The second stage. It takes the sequence of tokens produced by the lexer and organizes them into a parse tree or abstract syntax tree (AST), which represents the syntactic structure of the program according to the language's grammar rules. The parser checks if the program is syntactically correct.
+
+3. Compiler: The final stage. It takes the AST produced by the parser and translates it into a lower-level representation, such as assembly code or machine code, or an intermediate representation for a virtual machine (like Java bytecode). The compiler also performs optimizations to improve the efficiency of the resulting code.

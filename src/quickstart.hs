@@ -2,6 +2,8 @@
 
 -- Part 1
 
+import Part1
+
 -- Do not modify our definition of Inst and Code
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
