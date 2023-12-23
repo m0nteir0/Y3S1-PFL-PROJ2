@@ -1,18 +1,29 @@
---  Define a new type to represent the machine’s stack. The type must be named Stack.
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
-data Stack a = Stack [a]
+
+-- APENAS UM RASCUNHO PARA A PARTE 1
+
+
+
+
+--  Define a new type to represent the machine’s stack. The type must be named Stack.
+
+-- stack can have integer numbers or tt (true) or ff (false)
+
+-- data Stack a = Stack [a] -> incorreto, pq mudaria as funcoes dadas pelo prof. mas tb, nao podia ser [String] nem [Int]
 
 -- Define a new type to represent the machine’s state. The type must be named State.
 
-data State = State [(String, Int)]
+-- newtype State = State [(String, Int)] -- por ex [ (x,3), (y,4) ]
+
+-- data State = State [(String, Int)]
 
 -- Implement the createEmptyStack function which returns an empty machine’s stack.
-createEmptyStack :: Stack a
-createEmptyStack = Stack []
+createEmptyStack :: Stack
+createEmptyStack = []
 
 -- Implement the createEmptyState function which returns an empty machine’s state.
 createEmptyState :: State

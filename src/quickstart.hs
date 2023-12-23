@@ -1,9 +1,5 @@
 -- PFL 2023/24 - Haskell practical assignment quickstart
 
--- Part 1
-
-import Part1
-
 -- Do not modify our definition of Inst and Code
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
@@ -11,17 +7,30 @@ data Inst =
   deriving Show
 type Code = [Inst]
 
--- createEmptyStack :: Stack
-createEmptyStack = undefined -- TODO, Uncomment the function signature after defining Stack
+-- STACK
+-- stack can have integer numbers or tt ( means true) or ff ( means false)
+data StackItem = IntItem Integer | BoolItem String deriving Show
+type Stack = [StackItem]
 
--- stack2Str :: Stack -> String
-stack2Str = undefined -- TODO, Uncomment all the other function type declarations as you implement them
+createEmptyStack :: Stack
+createEmptyStack = []
 
--- createEmptyState :: State
-createEmptyState = undefined -- TODO, Uncomment the function signature after defining State
+stack2Str :: Stack -> String
+stack2Str [] = ""
+stack2Str (x:xs) = show x ++ "," ++ stack2Str xs
 
--- state2Str :: State -> String
-state2Str = undefined -- TODO
+
+-- STATE
+-- state is a list of pairs (variable, value)
+newtype State = State [(String, Integer)] deriving Show
+
+createEmptyState :: State
+createEmptyState = State []
+
+
+state2Str :: State -> String
+state2Str (State []) = ""
+state2Str (State (x:xs)) = show x ++ "," ++ state2Str (State xs)
 
 -- run :: (Code, Stack, State) -> (Code, Stack, State)
 run = undefined -- TODO
