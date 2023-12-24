@@ -9,6 +9,10 @@ data Inst =
   deriving Show
 type Code = [Inst]
 
+
+-- Stack accepts integers, "tt" and "ff" as values
+type Stack = [Either Integer String]
+
 -- createEmptyStack :: Stack
 createEmptyStack = undefined -- TODO, Uncomment the function signature after defining Stack
 
