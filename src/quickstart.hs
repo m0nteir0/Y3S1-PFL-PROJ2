@@ -34,7 +34,7 @@ testAssembler code = (stack2Str stack, state2Str state)
 
 -- Part 2
 
--- TODO: Define the types Aexp, Bexp, Stm and Program
+  -- TODO: Define the types Aexp, Bexp, Stm and Program
 
 -- compA :: Aexp -> Code
 compA = undefined -- TODO

@@ -97,7 +97,13 @@ gui:
 -> compiler recebe data e transforma em codigo assembled (codigo de maquina)
 -> run recebe codigo assembled e executa-o, produzindo um resultado
 
+lexer :: String → [Token]
+parse :: String → [Stm]
+compile :: Stm → Code
+run :: Code → Stack → State → (Code, Stack, State)
 
+
+--
 inicio:
 x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)
 
