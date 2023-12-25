@@ -78,15 +78,6 @@ run (Branch code1 code2:code, (B b):stack, state) = run (if b == TT then code1 +
 run (Loop code1 code2:code, stack, state) = run (code1 ++ [Branch (code2 ++ [Loop code1 code2]) [Noop]], stack, state)
 run (_, _, _) = error "Run-time error"
 
-
--- testLoop = do
---     let code = [Push 5, Store "counter", Loop [Push 1, Fetch "counter", Sub, Store "counter", Fetch "counter", Push 0, Le] [Noop]]
---     let stack = createEmptyStack
---     let state = createEmptyState
---     let (_, finalStack, finalState) = run (code, stack, state)
---     print finalStack
---     print finalState
-
 -- To help you test your assembler
 testAssembler :: Code -> (String, String)
 testAssembler code = (stack2Str stack, state2Str state)
