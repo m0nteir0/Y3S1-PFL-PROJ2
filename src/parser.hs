@@ -1,6 +1,8 @@
 -- 2. Parser
 -- The second stage. It takes the sequence of tokens produced by the lexer and organizes them into a parse tree or abstract syntax tree (AST), which represents the syntactic structure of the program according to the language's grammar rules. The parser checks if the program is syntactically correct.
 
+-- import Lexer (lexer, Token(PlusTok, MinusTok, MultTok, DivTok, IntTok, OpenP, CloseP))
+
 
 -- data Inst =
 --   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
@@ -135,5 +137,8 @@ parse tokens =
     case parseSumOrProdOrIntOrPar tokens of
         Just (expr, []) -> expr
         _ -> error "Parse error"
+
+
+        -- 
 
 

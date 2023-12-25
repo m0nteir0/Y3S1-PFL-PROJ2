@@ -1,3 +1,9 @@
+DUVIDAS:
+- fim da pagina 5 (divisao / ??)
+
+-----
+
+
 ter espaços entre numeros e operadores -> usar words
 - parentesis não têm espaços
 
