@@ -1,11 +1,6 @@
 -- PFL 2023/24 - Haskell practical assignment quickstart
 
 -- Do not modify our definition of Inst and Code
-data Inst =
-  Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
-  Branch Code Code | Loop Code Code
-  deriving Show
-type Code = [Inst]
 
 -- -- Stack accepts integers, "tt" and "ff" as values
 -- type Stack = [Either Integer String]
@@ -15,32 +10,11 @@ type Code = [Inst]
 
 -- STACK
 -- stack can have integer numbers or tt ( means true) or ff ( means false)
-data StackItem = IntItem Integer | BoolItem String deriving Show
-type Stack = [StackItem]
-
-createEmptyStack :: Stack
-createEmptyStack = []
-
-stack2Str :: Stack -> String
-stack2Str [] = ""
-stack2Str (x:xs) = show x ++ "," ++ stack2Str xs
-
-
-
 -- STATE
 -- state is a list of pairs (variable, value)
-newtype State = State [(String, Integer)] deriving Show
-
-createEmptyState :: State
-createEmptyState = State []
-
-
-state2Str :: State -> String
-state2Str (State []) = ""
-state2Str (State (x:xs)) = show x ++ "," ++ state2Str (State xs)
 
 -- run :: (Code, Stack, State) -> (Code, Stack, State)
-run = undefined -- TODO
+-- run = undefined -- TODO
 
 -- To help you test your assembler
 testAssembler :: Code -> (String, String)

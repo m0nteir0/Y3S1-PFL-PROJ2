@@ -40,7 +40,7 @@ lexVar cs = case (span isAlpha cs) of
 ```
 1 - transformar string numa lista que faz sentido
 2 - transf lista em data que representa a mesma expressao
-3- passar para uma lista que é o nosso assembly
+3- passar para uma lista que é o nosso assembly --> compiler
 4 - run que corre o programa de assembly, colocando em stack
 
 simular memoria em Haskell com lista de pares variavel-valor
@@ -85,8 +85,47 @@ ter operadores associados a precedencia tipo Prolog, feito por nós
 
 3. Compiler: The final stage. It takes the AST produced by the parser and translates it into a lower-level representation, such as assembly code or machine code, or an intermediate representation for a virtual machine (like Java bytecode). The compiler also performs optimizations to improve the efficiency of the resulting code.
 
+
+4. (DONE) Run (or Interpreter): The final stage. It takes the lower-level representation produced by the compiler and executes it, possibly producing some output.
+
+
 gui:
-**texto natural** -- (lexer, parser) --> **data** -- (compiler) --> **código assembled** -- (run) --> resultado (output do calculo)
+**texto alto nível** -- (lexer, parser) --> **data** -- (compiler) --> **código assembled** -- (run) --> resultado (output do calculo)
+
+-> lexer recebe linguagem de input (alto nivel) e transforma em tokens (palavras reservadas, variaveis, numeros, etc)
+-> parser recebe tokens e transforma em data (expressoes aritmeticas, etc) - organiza os tokens numa arvore de sintaxe abstrata (AST)
+-> compiler recebe data e transforma em codigo assembled (codigo de maquina)
+-> run recebe codigo assembled e executa-o, produzindo um resultado
+
+
+inicio:
+x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)
+
+lexer:
+[TokenVar "x",TokenAsg,TokenNum 42,TokenSC,TokenIf,TokenVar "x",TokenLE,TokenNum 43,TokenThen,TokenVar "x",TokenAsg,TokenNum 1,TokenSC,TokenElse,TokenOB,TokenVar "x",TokenAsg,TokenNum 33,TokenSC,TokenVar "x",TokenAsg,TokenVar "x",TokenPlus,TokenNum 1,TokenSC,TokenCB]
+
+parser:
+Assign "x" (Num 42) : If (Le (Var "x") (Num 43)) (Assign "x" (Num 1)) (Assign "x" (Num 33) : Assign "x" (Plus (Var "x") (Num 1)) : [])
+
+compiler:
+[Push 42,Store "x",Fetch "x",Push 43,Le,Branch [Push 1,Store "x"] [Fetch "x",Push 33,Store "x",Fetch "x",Fetch "x",Push 1,Add,Store "x"]]
+
+run/assembler:
+(code, stack, state) 
+
+([],[43,1],[])
+
+([],[1],[])
+
+([],[33,1],[])
+
+([],[34], [])
+
+([],[1], [])
+
+([],[42], []) wth
+
+
 ---
 
 Enunciado:
