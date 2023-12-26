@@ -1,3 +1,5 @@
+module Assembler where
+
 import Data.List (sortOn)
 
 data Inst =

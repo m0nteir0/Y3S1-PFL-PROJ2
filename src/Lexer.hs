@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
--- module Lexer (lexer, Token(..) ) where 
+module Lexer where 
 
 import Data.Char (isSpace, isDigit, isAlpha, isLower, digitToInt)
 
@@ -100,10 +100,12 @@ lexer ('<' : '=' : restStr) = LeTok : lexer restStr
 lexer ('=' : restStr) = EqBTok : lexer restStr
 lexer (';' : restStr) = EoSTok : lexer restStr
 lexer (':' : '=' : restStr) = AttTok : lexer restStr
+--As-patterns allow you to pattern-match on a part of the structure, while still keeping a reference to the whole structure. In this case, str is the whole structure (a list of characters, or a string), and chr : _ is a pattern that matches the structure.
+-- The pattern chr : reststr is a way of decomposing the list str. In Haskell, a list can be split into its head and its tail. The head of the list is its first element, and the tail is the rest of the list. The : operator is used to construct a list by adding an element to the front of another list, but in the context of pattern matching, it's used to deconstruct a list into its head and tail.
 lexer str@(chr : restStr)
     | isSpace chr = lexer restStr
     | isAlpha chr = lexAlpha str
-    | isDigit chr = lexDigit str
+    | isDigit chr = lexDigit str                --string starts with a digit (@ means "as pattern")
     | otherwise = error ("unexpected character: " ++ [head str])
     -- | isDigit chr = IntTok (stringToInt digitStr) : lexer restStr
     -- where

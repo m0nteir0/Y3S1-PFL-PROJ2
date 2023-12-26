@@ -1,27 +1,19 @@
-data Inst =
-  Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
-  Branch Code Code | Loop Code Code
-  deriving Show
-type Code = [Inst]
+-- =================== COMPILER ===========================
 
--- data Expr
---     = Num Int -- integer constants
---     | Add Expr Expr -- addition node
---     | Mult Expr Expr -- multiplication node
---     | Sub Expr Expr -- subtraction node
---     -- | Div Expr Expr -- division node
---     | Neg Expr -- negation node
---     | Boolean Bool -- boolean constants
---     | And Expr Expr -- and node
---     | Or Expr Expr -- or node
---     | Not Expr -- not node
---     | Eq Expr Expr -- equal node
---     | Le Expr Expr -- less than or equal node
---     -- | Var String -- variable node
---     -- | Let String Expr Expr -- let node
---     | Store String Expr -- store node
---     | If Expr Expr Expr -- if node
---     | Loop Expr Expr -- loop node
+-- - Add FETCH Expression --> figure out how to use it
+
+module Compiler where
+
+import Assembler
+import Parser
+
+
+-- Temp --> nned to learn how to import
+-- data Inst =
+--   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
+--   Branch Code Code | Loop Code Code
+--   deriving Show
+-- type Code = [Inst]
 
 data Aexp --arithmetic expressions
     = NUM Integer -- integer constants
@@ -76,15 +68,6 @@ compile ((IF bexp expr1 expr2):xs) = compB bexp ++ [Branch (compile [expr1]) (co
 compile ((WHILE bexp expr):xs) = Loop (compB bexp) (compile [expr]) : compile xs
 compile ((AExp aexp):xs) = compA aexp ++ compile xs
 compile ((BExp bexp):xs) = compB bexp ++ compile xs
-
--- write to an expression using those statements
--- x = 2 + 3 * 4
--- STORE "x" (ADD (NUM 2) (MULT (NUM 3) (NUM 4)))    
--- Boolean expressions
--- b1 = true AND false
--- STORE "b1" (Right (AND (BOOL True) (BOOL False)))
--- X = 5; X = X - 1;
--- STORE "x" (Left (NUM 5)), STORE "x" (Left (SUB (FETCH "x") (NUM 1)))
 
 runTests = do 
     -- Test STORE with arithmetic expressions
