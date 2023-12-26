@@ -1,9 +1,9 @@
 module Main where
 
 -- import Lexer
-import Parser
-import Compiler
-import Assembler
+import Parser_2
+import Compiler_3
+import Assembler_4
 
 main :: IO ()
 main = do

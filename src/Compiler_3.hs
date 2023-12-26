@@ -1,11 +1,11 @@
 -- =================== COMPILER ===========================
 
--- - Add FETCH Expression --> figure out how to use it
+-- - !TODO: Add FETCH Expression --> figure out how to use it
 
-module Compiler where
+module Compiler_3 where
 
-import Assembler
-import Parser
+import Assembler_4
+import Parser_2
 
 
 -- Temp --> nned to learn how to import
@@ -14,34 +14,6 @@ import Parser
 --   Branch Code Code | Loop Code Code
 --   deriving Show
 -- type Code = [Inst]
-
-data Aexp --arithmetic expressions
-    = NUM Integer -- integer constants
-    | ADD Aexp Aexp -- addition node
-    | MULT Aexp Aexp -- multiplication node
-    | SUB Aexp Aexp -- subtraction node
-    deriving Show
-
-data Bexp --boolean expressions
-    = BOOL Bool -- boolean constants
-    | AND Bexp Bexp -- and node
-    -- | Or Bexp Bexp -- or node
-    | NOT Bexp -- not node
-    | EQa Aexp Aexp -- equal node --
-    | EQb Bexp Bexp -- equal node --
-    | LE Aexp Aexp -- less than or equal node
-    deriving Show
-
-type Expr = Either Aexp Bexp
-
-data Stm --statements --> TUDO
-    = STORE String  (Either Aexp Bexp)-- store node
-    | FETCH String
-    | IF Bexp Stm Stm -- if node
-    | WHILE Bexp Stm -- loop node
-    | AExp Aexp
-    | BExp Bexp
-    deriving Show
 
 compA :: Aexp -> Code
 compA (NUM n) = [Push n]

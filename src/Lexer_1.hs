@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
 
-module Lexer where 
+module Lexer_1 where 
 
 import Data.Char (isSpace, isDigit, isAlpha, isLower, digitToInt)
 
