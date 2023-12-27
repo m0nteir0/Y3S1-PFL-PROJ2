@@ -60,7 +60,7 @@ data Token
     | ElseTok           -- "else"
     -- Variable
     | VarTok String     -- "var" -> always starts with lowercase
-    | AttTok            -- ":=" -> attributes value to variable
+    | AssignTok            -- ":=" -> assign value to variable
     -- end of statement
     |EoSTok             -- ";"
     deriving (Show)
@@ -85,10 +85,10 @@ instance Eq Token where
     ThenTok == ThenTok = True
     ElseTok == ElseTok = True
     VarTok a == VarTok b = a == b
-    AttTok == AttTok = True
+    AssignTok == AssignTok = True
     EoSTok == EoSTok = True
     _ == _ = False
-
+    
 lexer [] = []
 lexer ('+' : restStr) = AddTok : lexer restStr
 lexer ('*' : restStr) = MultTok : lexer restStr
@@ -99,7 +99,7 @@ lexer ('=' : '=' : restStr) = EqITok : lexer restStr
 lexer ('<' : '=' : restStr) = LeTok : lexer restStr
 lexer ('=' : restStr) = EqBTok : lexer restStr
 lexer (';' : restStr) = EoSTok : lexer restStr
-lexer (':' : '=' : restStr) = AttTok : lexer restStr
+lexer (':' : '=' : restStr) = AssignTok : lexer restStr
 --As-patterns allow you to pattern-match on a part of the structure, while still keeping a reference to the whole structure. In this case, str is the whole structure (a list of characters, or a string), and chr : _ is a pattern that matches the structure.
 -- The pattern chr : reststr is a way of decomposing the list str. In Haskell, a list can be split into its head and its tail. The head of the list is its first element, and the tail is the rest of the list. The : operator is used to construct a list by adding an element to the front of another list, but in the context of pattern matching, it's used to deconstruct a list into its head and tail.
 lexer str@(chr : restStr)

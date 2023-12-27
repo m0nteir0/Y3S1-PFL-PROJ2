@@ -4,8 +4,10 @@ module Parser_2 where
   
 import Lexer_1
 
+-- - !TODO: Add FETCH Expression --> figure out how to use it
+
 runTestsP = do
-  print $ lexer "x = 2 * (3 + 4)"
+  print $ lexer "x := 2 * (3 + 4)"
 
         
 data Aexp --arithmetic expressions
@@ -56,73 +58,73 @@ data Stm --statements --> TUDO
 
 
 
-parseInt :: [Token] -> Maybe (Stm, [Token])
-parseInt (IntTok n : restTokens)
-    = Just (n, restTokens)
-parseInt tokens
-    = Nothing
+-- parseInt :: [Token] -> Maybe (Stm, [Token])
+-- parseInt (IntTok n : restTokens)
+--     = Just (n, restTokens)
+-- parseInt tokens
+--     = Nothing
 
 
-parseProdOrInt :: [Token] -> Maybe (Stm, [Token])
-parseProdOrInt tokens
-    = case parseInt tokens of
-        Just (expr1, (MultTok : restTokens1)) ->
-            case parseProdOrInt restTokens1 of
-                Just (expr2, restTokens2) ->
-                    Just (MULT expr1 expr2, restTokens2)
-                Nothing -> Nothing
-        result -> result -- can be ’Nothing’ or valid
+-- parseProdOrInt :: [Token] -> Maybe (Stm, [Token])
+-- parseProdOrInt tokens
+--     = case parseInt tokens of
+--         Just (expr1, (MultTok : restTokens1)) ->
+--             case parseProdOrInt restTokens1 of
+--                 Just (expr2, restTokens2) ->
+--                     Just (MULT expr1 expr2, restTokens2)
+--                 Nothing -> Nothing
+--         result -> result -- can be ’Nothing’ or valid
 
-parseSumOrProdOrInt :: [Token] -> Maybe (Stm, [Token])
-parseSumOrProdOrInt tokens
-    = case parseProdOrInt tokens of
-        Just (expr1, (AddTok : restTokens1)) ->
-            case parseProdOrInt restTokens1 of
-                Just (expr2, restTokens2) ->
-                    Just (Add expr1 expr2, restTokens2)
-                Nothing -> Nothing
-        result -> result -- could be ’Nothing’ or valid
+-- parseSumOrProdOrInt :: [Token] -> Maybe (Stm, [Token])
+-- parseSumOrProdOrInt tokens
+--     = case parseProdOrInt tokens of
+--         Just (expr1, (AddTok : restTokens1)) ->
+--             case parseProdOrInt restTokens1 of
+--                 Just (expr2, restTokens2) ->
+--                     Just (Add expr1 expr2, restTokens2)
+--                 Nothing -> Nothing
+--         result -> result -- could be ’Nothing’ or valid
 
-parseIntOrParenExpr :: [Token] -> Maybe (Stm, [Token])
-parseIntOrParenExpr (IntTok n : restTokens)
-    = Just (IntTok n, restTokens)
-parseIntOrParenExpr (OpenTok : restTokens1)
-    = case parseSumOrProdOrIntOrPar restTokens1 of
-        Just (expr, (CloseTok : restTokens2)) ->
-                Just (expr, restTokens2)
-        Just _ -> Nothing -- no closing paren
-        Nothing -> Nothing
-parseIntOrParenExpr tokens = Nothing
-
-
-parseProdOrIntOrPar :: [Token] -> Maybe (Stm, [Token])
-parseProdOrIntOrPar tokens
-    = case parseIntOrParenExpr tokens of
-        Just (expr1, (MultTok : restTokens1)) ->
-            case parseProdOrIntOrPar restTokens1 of
-                Just (expr2, restTokens2) ->
-                    Just (Mult expr1 expr2, restTokens2)
-                Nothing -> Nothing
-        result -> result
-
-parseSumOrProdOrIntOrPar::[Token] -> Maybe (Stm, [Token])
-parseSumOrProdOrIntOrPar tokens
-    = case parseProdOrIntOrPar tokens of
-        Just (expr1, (AddTok : restTokens1)) ->
-            case parseSumOrProdOrIntOrPar restTokens1 of
-                Just (expr2, restTokens2) ->
-                        Just (ADD expr1 expr2, restTokens2)
-                Nothing -> Nothing
-        result -> result
+-- parseIntOrParenExpr :: [Token] -> Maybe (Stm, [Token])
+-- parseIntOrParenExpr (IntTok n : restTokens)
+--     = Just (IntTok n, restTokens)
+-- parseIntOrParenExpr (OpenTok : restTokens1)
+--     = case parseSumOrProdOrIntOrPar restTokens1 of
+--         Just (expr, (CloseTok : restTokens2)) ->
+--                 Just (expr, restTokens2)
+--         Just _ -> Nothing -- no closing paren
+--         Nothing -> Nothing
+-- parseIntOrParenExpr tokens = Nothing
 
 
-parse :: [Token] -> Stm
-parse tokens =
-    case parseSumOrProdOrIntOrPar tokens of
-        Just (expr, []) -> expr
-        _ -> error "Parse error"
+-- parseProdOrIntOrPar :: [Token] -> Maybe (Stm, [Token])
+-- parseProdOrIntOrPar tokens
+--     = case parseIntOrParenExpr tokens of
+--         Just (expr1, (MultTok : restTokens1)) ->
+--             case parseProdOrIntOrPar restTokens1 of
+--                 Just (expr2, restTokens2) ->
+--                     Just (Mult expr1 expr2, restTokens2)
+--                 Nothing -> Nothing
+--         result -> result
+
+-- parseSumOrProdOrIntOrPar::[Token] -> Maybe (Stm, [Token])
+-- parseSumOrProdOrIntOrPar tokens
+--     = case parseProdOrIntOrPar tokens of
+--         Just (expr1, (AddTok : restTokens1)) ->
+--             case parseSumOrProdOrIntOrPar restTokens1 of
+--                 Just (expr2, restTokens2) ->
+--                         Just (ADD expr1 expr2, restTokens2)
+--                 Nothing -> Nothing
+--         result -> result
 
 
-        -- 
+-- parse :: [Token] -> Stm
+-- parse tokens =
+--     case parseSumOrProdOrIntOrPar tokens of
+--         Just (expr, []) -> expr
+--         _ -> error "Parse error"
+
+
+--         -- 
 
 
