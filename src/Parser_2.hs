@@ -20,7 +20,7 @@
 ------------------------------------------------
 
 module Parser_2 where
-  
+
 import Lexer_1
 
 -- - !TODO: Add FETCH Expression --> figure out how to use it
@@ -28,7 +28,7 @@ import Lexer_1
 runTestsP = do
   print $ lexer "x := 2 * (3 + 4)"
 
-        
+
 -- parsed information will have instructions of this kind of structure:
 data Aexp --arithmetic expressions
     = NUM Integer -- integer constants
@@ -64,10 +64,9 @@ data Stm --statements --> TUDO
 -- parsing integers
 parseInt :: [Token] -> Maybe (Aexp, [Token])
 parseInt (IntTok n : restTokens)
-  = Just (IntLit n, restTokens)
+  = Just (NUM (fromIntegral n), restTokens)
 parseInt tokens
   = Nothing
-
 
 -- parsing products
 parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
@@ -76,11 +75,9 @@ parseProdOrInt tokens
     Just (expr1, MultTok : restTokens1) ->
       case parseProdOrInt restTokens1 of
         Just (expr2, restTokens2) ->
-          Just (Mult expr1 expr2, restTokens2)
+          Just (MULT expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result -- can be ’Nothing’ or valid
-
-
 
 -- parsing sums
 parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
@@ -89,17 +86,18 @@ parseSumOrProdOrInt tokens
     Just (expr1, AddTok : restTokens1) ->
       case parseProdOrInt restTokens1 of
         Just (expr2, restTokens2) ->
-          Just (Add expr1 expr2, restTokens2)
+          Just (ADD expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result -- could be ’Nothing’ or valid
+
 -- ========================
 
 
-
+-- ========================
 -- parethesised expressions
 parseIntOrParenExpr :: [Token] -> Maybe (Aexp, [Token])
 parseIntOrParenExpr (IntTok n : restTokens)
-  = Just (IntLit n, restTokens)
+  = Just (NUM (fromIntegral n), restTokens)
 parseIntOrParenExpr (OpenTok : restTokens1)
   = case parseSumOrProdOrIntOrPar restTokens1 of
     Just (expr, CloseTok : restTokens2) ->
@@ -113,30 +111,75 @@ parseIntOrParenExpr tokens = Nothing
 parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
 parseProdOrIntOrPar tokens
   = case parseIntOrParenExpr tokens of
-    Just (expr1, (TimesTok : restTokens1)) ->
+    Just (expr1, MultTok : restTokens1) ->
       case parseProdOrIntOrPar restTokens1 of
         Just (expr2, restTokens2) ->
-          Just (Mult expr1 expr2, restTokens2)
+          Just (MULT expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result
-
 
 
 -- Parsing sums or products or parenthesised expressions
 parseSumOrProdOrIntOrPar::[Token] -> Maybe (Aexp, [Token])
 parseSumOrProdOrIntOrPar tokens
   = case parseProdOrIntOrPar tokens of
-    Just (expr1, (PlusTok : restTokens1)) ->
+    Just (expr1, AddTok : restTokens1) ->
       case parseSumOrProdOrIntOrPar restTokens1 of
         Just (expr2, restTokens2) ->
-          Just (Add expr1 expr2, restTokens2)
+          Just (ADD expr1 expr2, restTokens2)
+        Nothing -> Nothing
+    Just (expr1, SubTok : restTokens1) ->
+      case parseSumOrProdOrIntOrPar restTokens1 of
+        Just (expr2, restTokens2) ->
+          Just (SUB expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result
 
 
 -- top-level
-parseAexp :: [Token] -> Aexp
+-- parseAexp :: [Token] -> Aexp
+-- parseAexp tokens =
+--   case parseSumOrProdOrIntOrPar tokens of
+--     Just (expr, []) -> expr
+--     _ -> error "Parse error"
+parseAexp :: [Token] -> Maybe Aexp
 parseAexp tokens =
   case parseSumOrProdOrIntOrPar tokens of
-    Just (expr, []) -> expr
-    _ -> error "Parse error"
+    Just (expr, []) -> Just expr
+    _ -> Nothing
+
+
+
+-- ========================
+parseBoolorParent :: [Token] -> Maybe (Bexp, [Token])
+parseBoolorParent (TruTok : restTokens) = Just (BOOL True, restTokens)
+parseBoolorParent (FalsTok : restTokens) = Just (BOOL False, restTokens)
+parseBoolorParent (OpenTok : restTokens1) =
+  case parseOrAndNotOrRelOrBool restTokens1 of -- !TODO: change function name
+    Just (expr, CloseTok : restTokens2) ->
+      Just (expr, restTokens2)
+    Just _ -> Nothing -- no closing paren
+    Nothing -> Nothing
+
+
+-- !TODO: figure out what functions are needed
+
+
+parseBexp :: [Token] -> Maybe Bexp
+parseBexp tokens =
+  case parseOrAndNotOrRelOrBool tokens of -- !TODO: change function name  
+    Just (expr, []) -> Just expr
+    _ -> Nothing
+
+
+parseStm :: [Token] -> Stm
+parseStm tokens =
+
+
+
+buildData:: [Token] -> [Stm]
+buildData tokens = [AExp (parseAexp tokens)] -- !NOTE: just tot test.
+-- needs to read to EoTTok and call parseStm
+
+parse :: String -> [Stm]
+parse = buildData . lexer
