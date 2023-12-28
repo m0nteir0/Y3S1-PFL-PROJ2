@@ -148,7 +148,7 @@ parseVar _ = Nothing
 parseAssignment :: [Token] -> Maybe (Stm, [Token])
 parseAssignment tokens =
   case parseVar tokens of
-    Just (var, (AttTok : restTokens1)) ->
+    Just (var, (AssignTok : restTokens1)) ->
       case parseAexp restTokens1 of
         Just (expr, restTokens2) -> Just (VARASSIGN var expr, restTokens2)
         Nothing -> Nothing
@@ -193,4 +193,4 @@ parse tokens =
               case parseWhileDo tokens of
                 Just (stmt, []) -> stmt
                 _ -> error "Parse error"
-                
+
