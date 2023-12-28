@@ -59,138 +59,84 @@ data Stm --statements --> TUDO
     deriving Show
 
 
-
-
+-- ===============================
+-- !NOTE: Acho que este pedaço não é necessário, o restante codigo faz o mesmo mas 
+-- parsing integers
 parseInt :: [Token] -> Maybe (Aexp, [Token])
-parseInt (IntTok n : restTokens) = Just (NUM (fromIntegral n), restTokens)
-parseInt tokens = Nothing
+parseInt (IntTok n : restTokens)
+  = Just (IntLit n, restTokens)
+parseInt tokens
+  = Nothing
 
-parseTerm :: [Token] -> Maybe (Aexp, [Token])
-parseTerm tokens =
-  case parseInt tokens of
+
+-- parsing products
+parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+parseProdOrInt tokens
+  = case parseInt tokens of
     Just (expr1, MultTok : restTokens1) ->
-      case parseTerm restTokens1 of
-        Just (expr2, restTokens2) -> Just (MULT expr1 expr2, restTokens2)
+      case parseProdOrInt restTokens1 of
+        Just (expr2, restTokens2) ->
+          Just (Mult expr1 expr2, restTokens2)
         Nothing -> Nothing
-    result -> result
+    result -> result -- can be ’Nothing’ or valid
 
-parseAexp :: [Token] -> Maybe (Aexp, [Token])
-parseAexp tokens =
-  case parseTerm tokens of
+
+
+-- parsing sums
+parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+parseSumOrProdOrInt tokens
+  = case parseProdOrInt tokens of
     Just (expr1, AddTok : restTokens1) ->
-      case parseAexp restTokens1 of
-        Just (expr2, restTokens2) -> Just (ADD expr1 expr2, restTokens2)
+      case parseProdOrInt restTokens1 of
+        Just (expr2, restTokens2) ->
+          Just (Add expr1 expr2, restTokens2)
         Nothing -> Nothing
-    Just (expr1, SubTok : restTokens1) ->
-      case parseAexp restTokens1 of
-        Just (expr2, restTokens2) -> Just (SUB expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
+    result -> result -- could be ’Nothing’ or valid
+-- ========================
 
-parseBexp :: [Token] -> Maybe (Bexp, [Token])
-parseBexp tokens =
-  case parseAexp tokens of
-    Just (expr1, EqITok : restTokens1) ->
-      case parseAexp restTokens1 of
-        Just (expr2, restTokens2) -> Just (EQa expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
 
-parseFactor :: [Token] -> Maybe (Bexp, [Token])
-parseFactor (TruTok : restTokens) = Just (BOOL True, restTokens)
-parseFactor (FalsTok : restTokens) = Just (BOOL False, restTokens)
-parseFactor (NotTok : restTokens) =
-  case parseFactor restTokens of
-    Just (expr, restTokens') -> Just (NOT expr, restTokens')
-    Nothing -> Nothing
-parseFactor tokens =
-  case parseBexp tokens of
-    Just (expr1, (AndTok : restTokens1)) ->
-      case parseFactor restTokens1 of
-        Just (expr2, restTokens2) -> Just (AND expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
 
+-- parethesised expressions
 parseIntOrParenExpr :: [Token] -> Maybe (Aexp, [Token])
-parseIntOrParenExpr (IntTok n : restTokens) = Just (NUM n, restTokens)
-parseIntOrParenExpr (OpenTok : restTokens1) =
-  case parseAexp restTokens1 of
-    Just (expr, (CloseTok : restTokens2)) -> Just (expr, restTokens2)
-    _ -> Nothing
+parseIntOrParenExpr (IntTok n : restTokens)
+  = Just (IntLit n, restTokens)
+parseIntOrParenExpr (OpenTok : restTokens1)
+  = case parseSumOrProdOrIntOrPar restTokens1 of
+    Just (expr, CloseTok : restTokens2) ->
+      Just (expr, restTokens2)
+    Just _ -> Nothing -- no closing paren
+    Nothing -> Nothing
 parseIntOrParenExpr tokens = Nothing
 
-parseTermOrParenExpr :: [Token] -> Maybe (Aexp, [Token])
-parseTermOrParenExpr tokens =
-  case parseIntOrParenExpr tokens of
-    Just (expr1, (MultTok : restTokens1)) ->
-      case parseTermOrParenExpr restTokens1 of
-        Just (expr2, restTokens2) -> Just (MULT expr1 expr2, restTokens2)
+
+-- Parsing products or parenthesised expressions
+parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
+parseProdOrIntOrPar tokens
+  = case parseIntOrParenExpr tokens of
+    Just (expr1, (TimesTok : restTokens1)) ->
+      case parseProdOrIntOrPar restTokens1 of
+        Just (expr2, restTokens2) ->
+          Just (Mult expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result
 
-parseAexpOrParenExpr :: [Token] -> Maybe (Aexp, [Token])
-parseAexpOrParenExpr tokens =
-  case parseTermOrParenExpr tokens of
-    Just (expr1, (AddTok : restTokens1)) ->
-      case parseAexpOrParenExpr restTokens1 of
-        Just (expr2, restTokens2) -> Just (ADD expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    Just (expr1, (SubTok : restTokens1)) ->
-      case parseAexpOrParenExpr restTokens1 of
-        Just (expr2, restTokens2) -> Just (SUB expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
 
-parseVar :: [Token] -> Maybe (String, [Token])
-parseVar (VarTok v : restTokens) = Just (v, restTokens)
-parseVar _ = Nothing
 
-parseAssignment :: [Token] -> Maybe (Stm, [Token])
-parseAssignment tokens =
-  case parseVar tokens of
-    Just (var, (AssignTok : restTokens1)) ->
-      case parseAexp restTokens1 of
-        Just (expr, restTokens2) -> Just (VARASSIGN var expr, restTokens2)
+-- Parsing sums or products or parenthesised expressions
+parseSumOrProdOrIntOrPar::[Token] -> Maybe (Aexp, [Token])
+parseSumOrProdOrIntOrPar tokens
+  = case parseProdOrIntOrPar tokens of
+    Just (expr1, (PlusTok : restTokens1)) ->
+      case parseSumOrProdOrIntOrPar restTokens1 of
+        Just (expr2, restTokens2) ->
+          Just (Add expr1 expr2, restTokens2)
         Nothing -> Nothing
     result -> result
 
-parseIfThenElse :: [Token] -> Maybe (Stm, [Token])
-parseIfThenElse tokens =
-  case parseBexp tokens of
-    Just (cond, (ThenTok : restTokens1)) ->
-      case parse restTokens1 of
-        stmThen@(AExp _ : restTokens2) ->
-          case restTokens2 of
-            (ElseTok : restTokens3) ->
-              case parse restTokens3 of
-                stmElse@(AExp _ : restTokens4) ->
-                  Just (IFTHENELSE cond stmThen stmElse, restTokens4)
-                _ -> Nothing
-            _ -> Nothing
-        _ -> Nothing
-    result -> result
 
-parseWhileDo :: [Token] -> Maybe (Stm, [Token])
-parseWhileDo tokens =
-  case parseBexp tokens of
-    Just (cond, (DoTok : restTokens1)) ->
-      case parse restTokens1 of
-        stm@(AExp _ : restTokens2) -> Just (WHILEDO cond stm, restTokens2)
-        _ -> Nothing
-    result -> result
-
-parse :: [Token] -> Stm
-parse tokens =
-  case parseAexpOrParenExpr tokens of
-    Just (expr, []) -> AExp expr
-    _ ->
-      case parseAssignment tokens of
-        Just (stmt, []) -> stmt
-        _ ->
-          case parseIfThenElse tokens of
-            Just (stmt, []) -> stmt
-            _ ->
-              case parseWhileDo tokens of
-                Just (stmt, []) -> stmt
-                _ -> error "Parse error"
-
+-- top-level
+parseAexp :: [Token] -> Aexp
+parseAexp tokens =
+  case parseSumOrProdOrIntOrPar tokens of
+    Just (expr, []) -> expr
+    _ -> error "Parse error"
