@@ -35,13 +35,14 @@ compile ((STORE s expr):xs) = case expr of
     Left aexp -> compA aexp
     Right bexp -> compB bexp
     ++ [Store s] ++ compile xs
-compile ((FETCH s):xs) = Fetch s : compile xs
+-- compile ((FETCH s):xs) = Fetch s : compile xs
 compile ((IF bexp expr1 expr2):xs) = compB bexp ++ [Branch (compile [expr1]) (compile [expr2])] ++ compile xs
 compile ((WHILE bexp expr):xs) = Loop (compB bexp) (compile [expr]) : compile xs
 compile ((AExp aexp):xs) = compA aexp ++ compile xs
 compile ((BExp bexp):xs) = compB bexp ++ compile xs
 
 runTests = do 
+    print $ compile [AExp (SUB (SUB (ADD (NUM 1) (MULT (NUM 2) (NUM 4))) (MULT (NUM 2) (NUM 6))) (NUM 4))]                      -- == [Push 4, Push 3, Sub, Push 2, Mult, Push 1, Add]
     -- Test STORE with arithmetic expressions
     print $ compile [STORE "x" (Left (ADD (NUM 2) (MULT (NUM 3) (NUM 4))))]                                                                     -- == [Push 4, Push 3, Mult, Push 2, Add, Store "x"]
     print $ compile [STORE "y" (Left (SUB (MULT (NUM 7) (NUM 8)) (NUM 9)))]                                                                     -- == [Push 9, Push 8, Push 7, Mult, Sub, Store "y"]

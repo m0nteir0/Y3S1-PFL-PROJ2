@@ -22,6 +22,7 @@
 module Parser_2 where
 
 import Lexer_1
+import Text.Parsec (parse)
 
 -- - !TODO: Add FETCH Expression --> figure out how to use it
 
@@ -51,7 +52,7 @@ data Bexp --boolean expressions
 
 data Stm --statements --> TUDO
     = STORE String  (Either Aexp Bexp)-- store node
-    | FETCH String
+    | VAR String      -- get the value of a variable
     | IF Bexp Stm Stm -- if node
     | WHILE Bexp Stm -- loop node
     | AExp Aexp
@@ -62,33 +63,33 @@ data Stm --statements --> TUDO
 -- ===============================
 -- !NOTE: Acho que este pedaço não é necessário, o restante codigo faz o mesmo mas 
 -- parsing integers
-parseInt :: [Token] -> Maybe (Aexp, [Token])
-parseInt (IntTok n : restTokens)
-  = Just (NUM (fromIntegral n), restTokens)
-parseInt tokens
-  = Nothing
+-- parseInt :: [Token] -> Maybe (Aexp, [Token])
+-- parseInt (IntTok n : restTokens)
+--   = Just (NUM (fromIntegral n), restTokens)
+-- parseInt tokens
+--   = Nothing
 
--- parsing products
-parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
-parseProdOrInt tokens
-  = case parseInt tokens of
-    Just (expr1, MultTok : restTokens1) ->
-      case parseProdOrInt restTokens1 of
-        Just (expr2, restTokens2) ->
-          Just (MULT expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result -- can be ’Nothing’ or valid
+-- -- parsing products
+-- parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+-- parseProdOrInt tokens
+--   = case parseInt tokens of
+--     Just (expr1, MultTok : restTokens1) ->
+--       case parseProdOrInt restTokens1 of
+--         Just (expr2, restTokens2) ->
+--           Just (MULT expr1 expr2, restTokens2)
+--         Nothing -> Nothing
+--     result -> result -- can be ’Nothing’ or valid
 
--- parsing sums
-parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
-parseSumOrProdOrInt tokens
-  = case parseProdOrInt tokens of
-    Just (expr1, AddTok : restTokens1) ->
-      case parseProdOrInt restTokens1 of
-        Just (expr2, restTokens2) ->
-          Just (ADD expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result -- could be ’Nothing’ or valid
+-- -- parsing sums
+-- parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+-- parseSumOrProdOrInt tokens
+--   = case parseProdOrInt tokens of
+--     Just (expr1, AddTok : restTokens1) ->
+--       case parseProdOrInt restTokens1 of
+--         Just (expr2, restTokens2) ->
+--           Just (ADD expr1 expr2, restTokens2)
+--         Nothing -> Nothing
+--     result -> result -- could be ’Nothing’ or valid
 
 -- ========================
 
@@ -99,7 +100,8 @@ parseIntOrPar :: [Token] -> Maybe (Aexp, [Token])
 parseIntOrPar (IntTok n : restTokens)
   = Just (NUM (fromIntegral n), restTokens)
 parseIntOrPar (OpenTok : restTokens1)
-  = case parseSumOrProdOrIntOrPar restTokens1 of
+  = case parseAexp restTokens1 of
+  -- = case parseSumOrProdOrIntOrPar restTokens1 of
     Just (expr, CloseTok : restTokens2) ->
       Just (expr, restTokens2)
     Just _ -> Nothing -- no closing paren
@@ -107,48 +109,65 @@ parseIntOrPar (OpenTok : restTokens1)
 parseIntOrPar tokens = Nothing
 
 
--- Parsing products or parenthesised expressions
+-- -- Parsing products or parenthesised expressions
+-- parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
+-- parseProdOrIntOrPar tokens
+--   = case parseIntOrPar tokens of
+--     Just (expr1, MultTok : restTokens1) ->
+--       case parseProdOrIntOrPar restTokens1 of
+--         Just (expr2, restTokens2) ->
+--           Just (MULT expr1 expr2, restTokens2)
+--         Nothing -> Nothing
+--     result -> result
 parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
-parseProdOrIntOrPar tokens
-  = case parseIntOrPar tokens of
-    Just (expr1, MultTok : restTokens1) ->
-      case parseProdOrIntOrPar restTokens1 of
-        Just (expr2, restTokens2) ->
-          Just (MULT expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
+parseProdOrIntOrPar tokens = do
+  (expr1, restTokens1) <- parseIntOrPar tokens
+  parseRest expr1 restTokens1
+  where
+    parseRest expr1 [] = Just (expr1, [])
+    parseRest expr1 (MultTok : restTokens1) = do
+      (expr2, restTokens2) <- parseIntOrPar restTokens1
+      parseRest (MULT expr1 expr2) restTokens2
+    parseRest expr1 restTokens1 = Just (expr1, restTokens1)
+
+-- -- Parsing sums or products or parenthesised expressions
+-- parseSumOrProdOrIntOrPar::[Token] -> Maybe (Aexp, [Token])
+-- parseSumOrProdOrIntOrPar tokens
+--   = case parseProdOrIntOrPar tokens of
+--     Just (expr1, AddTok : restTokens1) ->
+--       case parseSumOrProdOrIntOrPar restTokens1 of
+--         Just (expr2, restTokens2) ->
+--           Just (ADD expr1 expr2, restTokens2)
+--         Nothing -> Nothing
+--     Just (expr1, SubTok : restTokens1) ->
+--       case parseSumOrProdOrIntOrPar restTokens1 of
+--         Just (expr2, restTokens2) ->
+--           Just (SUB expr1 expr2, restTokens2)
+--         Nothing -> Nothing
+--     result -> result
 
 
--- Parsing sums or products or parenthesised expressions
-parseSumOrProdOrIntOrPar::[Token] -> Maybe (Aexp, [Token])
-parseSumOrProdOrIntOrPar tokens
-  = case parseProdOrIntOrPar tokens of
-    Just (expr1, AddTok : restTokens1) ->
-      case parseSumOrProdOrIntOrPar restTokens1 of
-        Just (expr2, restTokens2) ->
-          Just (ADD expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    Just (expr1, SubTok : restTokens1) ->
-      case parseSumOrProdOrIntOrPar restTokens1 of
-        Just (expr2, restTokens2) ->
-          Just (SUB expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
+parseSumOrProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
+parseSumOrProdOrIntOrPar tokens = do
+  (expr1, restTokens1) <- parseProdOrIntOrPar tokens
+  parseRest expr1 restTokens1
+  where
+    parseRest expr1 [] = Just (expr1, [])
+    parseRest expr1 (AddTok : restTokens1) = do
+      (expr2, restTokens2) <- parseProdOrIntOrPar restTokens1
+      parseRest (ADD expr1 expr2) restTokens2
+    parseRest expr1 (SubTok : restTokens1) = do
+      (expr2, restTokens2) <- parseProdOrIntOrPar restTokens1
+      parseRest (SUB expr1 expr2) restTokens2
+    parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 
 -- top-level
--- parseAexp :: [Token] -> Aexp
--- parseAexp tokens =
---   case parseSumOrProdOrIntOrPar tokens of
---     Just (expr, []) -> expr
---     _ -> error "Parse error"
 parseAexp :: [Token] -> Maybe (Aexp, [Token])
 parseAexp tokens =
   case parseSumOrProdOrIntOrPar tokens of
     Just (expr, restTokens) -> Just (expr, restTokens)
     _ -> Nothing  -- !WARNING: may need a result -> result here
-
-
 
 -- ========================
 parseBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
@@ -160,8 +179,9 @@ parseBoolOrPar (OpenTok : restTokens1) =
       Just (expr, restTokens2)
     Just _ -> Nothing -- no closing paren
     Nothing -> Nothing
+parseBoolOrPar tokens = Nothing
 
-
+-- this old version of the parser works
 parseEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
 parseEqAOrLTOrBoolOrPar tokens =
   case parseAexp tokens of --see if there is an integer expression
@@ -177,37 +197,62 @@ parseEqAOrLTOrBoolOrPar tokens =
     Nothing -> parseBoolOrPar tokens -- if there is no integer expression, check if there is a boolean expression
   -- case parseBoolOrPar tokens -- será que é necessario?
 
--- parseIEqORIneqOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
--- -- parseIEqORIneqOrBoolOrPar tokens
+-- parseEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
+-- parseEqAOrLTOrBoolOrPar tokens = do
+--   (expr1, restTokens1) <- parseAexp tokens
+--   parseRest expr1 restTokens1
+--   where
+--     -- parseRest expr1 [] = Just (expr1, [])
+--     parseRest expr1 [] = Nothing
+--     parseRest expr1 (LeTok : restTokens1) = do
+--       (expr2, restTokens2) <- parseAexp restTokens1
+--       parseRest (LE expr1 expr2) restTokens2
+--     parseRest expr1 (EqITok : restTokens1) = do
+--       (expr2, restTokens2) <- parseAexp restTokens1
+--       parseRest (EQa expr1 expr2) restTokens2
+--     -- parseRest expr1 restTokens1 = Just (expr1, restTokens1)
+--     parseRest expr1 restTokens1 = Nothing
+
+-- -- not (1 == 1)
+-- -- not True
+-- parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
+-- parseNotOrEqAOrLTOrBoolOrPar tokens = do
+--   (expr1, restTokens1) <- parseEqAOrLTOrBoolOrPar tokens
+--   parseRest expr1 restTokens1
+--   where
+--     parseRest expr1 [] = Just (expr1, [])
+--     parseRest expr1 (NotTok : restTokens1) = parseRest (NOT expr1) restTokens1
+--     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
+
 
 parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
-parseNotOrEqAOrLTOrBoolOrPar tokens =
-  case parseEqAOrLTOrBoolOrPar tokens of
-    Just (expr1, NotTok : restTokens1) -> Just (NOT expr1, restTokens1)      
-    result -> result
+parseNotOrEqAOrLTOrBoolOrPar (NotTok : restTokens) = do
+  (expr, restTokens1) <- parseEqAOrLTOrBoolOrPar restTokens
+  return (NOT expr, restTokens1)
+parseNotOrEqAOrLTOrBoolOrPar tokens = parseEqAOrLTOrBoolOrPar tokens
 
 
 parseEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
-parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens =
-  case parseNotOrEqAOrLTOrBoolOrPar tokens of
-    Just (expr1, EqBTok : restTokens1) ->
-      case parseEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1 of
-        Just (expr2, restTokens2) -> Just (EQb expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    result -> result
-
-
-    
+parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
+  (expr1, restTokens1) <- parseNotOrEqAOrLTOrBoolOrPar tokens
+  parseRest expr1 restTokens1
+  where
+    parseRest expr1 [] = Just (expr1, [])
+    parseRest expr1 (EqBTok : restTokens1) = do
+      (expr2, restTokens2) <- parseNotOrEqAOrLTOrBoolOrPar restTokens1
+      parseRest (EQb expr1 expr2) restTokens2
+    parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
-parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar tokens =
-  case parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens of
-    Just (expr1, AndTok : restTokens1) ->
-      case parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1 of
-        Just (expr2, restTokens2) -> Just (AND expr1 expr2, restTokens2)
-        Nothing -> Nothing
-    Just result -> Just result
-    Nothing -> Nothing
+parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
+  (expr1, restTokens1) <- parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens
+  parseRest expr1 restTokens1
+  where
+    parseRest expr1 [] = Just (expr1, [])
+    parseRest expr1 (AndTok : restTokens1) = do
+      (expr2, restTokens2) <- parseEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1
+      parseRest (AND expr1 expr2) restTokens2
+    parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 parseBexp :: [Token] -> Maybe (Bexp, [Token])
 parseBexp tokens =
@@ -215,17 +260,60 @@ parseBexp tokens =
     Just (expr, restTokens) -> Just (expr, restTokens)
     _ -> Nothing
 
-
--- parseStm :: [Token] -> Stm
--- parseStm tokens =
+-- ======================== Tudo kinder bueno acima
 
 
+parseIf :: [Token] -> Maybe (Stm, [Token])
+parseIf (IfTok : restTokens) = do
+  (bexp, restTokens1) <- parseBexp restTokens
+  case restTokens1 of
+    ThenTok : restTokens2 -> do
+      (stm1, restTokens3) <- parseStm restTokens2
+      case restTokens3 of
+        ElseTok : restTokens4 -> do
+          (stm2, restTokens5) <- parseStm restTokens4
+          return (IF bexp stm1 stm2, restTokens5)
+        _ -> Nothing
+    _ -> Nothing
 
--- buildData:: [Token] -> [Stm]
--- buildData tokens = 
---   case parseBexp tokens of
---     Just (expr, restTokens) -> expr : buildData restTokens
---     _ -> []
+
+parseStore :: [Token] -> Maybe (Stm, [Token])
+parseStore (VarTok s : AssignTok : restTokens) = 
+  case parseAexp restTokens of
+    Just (expr, restTokens1) -> Just (STORE s (Left expr), restTokens1)
+    Nothing -> 
+      case parseBexp restTokens of
+        Just (expr, restTokens1) -> Just (STORE s (Right expr), restTokens1)
+        Nothing -> Nothing
+
+
+parseStm :: [Token] -> Maybe (Stm, [Token])
+parseStm tokens =
+  case parseIf tokens of
+    Just (stm, restTokens) -> Just (stm, restTokens)
+    Nothing -> case parseWhile tokens of
+      Just (stm, restTokens) -> Just (stm, restTokens)
+      Nothing -> case parseStore tokens of
+        Just (stm, restTokens) -> Just (stm, restTokens)
+        Nothing -> case parseBexp tokens of
+          Just (expr, restTokens) -> Just (BExp expr, restTokens)
+          Nothing -> case parseAexp tokens of
+            Just (expr, restTokens) -> Just (AExp expr, restTokens)
+            Nothing -> Nothing
+        -- this will continue
+
+
+
+
+buildData:: [Token] -> [Stm]
+buildData [] = [] -- caso base, quando a lista de tokens estiver vazia
+buildData tokens = 
+  case parseStm tokens of
+    Just (stm, restTokens) -> stm : buildData restTokens
+    Nothing -> error "Syntax error"
+
+
+parse = buildData -> parceStm 
 
 -- -- needs to read to EoTTok and call parseStm
 

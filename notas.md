@@ -224,3 +224,14 @@ and without spaces, with the leftmost value representing the top of the stack.
 stack2Str :: Stack → String
 For instance, after executing the code [push−42, true, f alse], the string representing
 the stack is: False,True,42
+
+
+------
+
+rascunhos do readme:
+
+"
+Para tal, dividimos o projeto em 3 partes:
+- Análise Léxica, que consiste em converter o input numa lista de tokens. Para tal, foi criado um tipo de dados `Token` que representa os diferentes tipos de tokens que podem ser encontrados no input. De seguida, foi criada a função `lexer` que recebe o input e o converte numa lista de tokens. Esta função é recursiva e vai analisando o input caracter a caracter, adicionando os tokens à lista de tokens à medida que os vai encontrando. 
+- Análise Sintática, que consiste em converter a lista de tokens numa árvore de sintaxe abstrata. Para tal, foi criado um tipo de dados `Expr` que representa os diferentes tipos de expressões que podem ser encontradas no input. De seguida, foi criada a função `parser` que recebe a lista de tokens e a converte numa árvore de sintaxe abstrata. Esta função é recursiva e vai analisando a lista de tokens, adicionando os nós à árvore à medida que os vai encontrando.
+- Análise Semântica, que consiste em converter a árvore de sintaxe abstrata numa lista de instruções que a máquina de baixo nível consegue interpretar. Para tal, foi criado um tipo de dados `Instruction` que representa os diferentes tipos de instruções que podem ser encontradas no input. De seguida, foi criada a função `compiler` que recebe a árvore de sintaxe abstrata e a converte numa lista de instruções. Esta função é recursiva e vai analisando a árvore de sintaxe abstrata, adicionando as instruções à lista à medida que as vai encontrando."

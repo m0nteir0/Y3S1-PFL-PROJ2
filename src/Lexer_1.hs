@@ -4,32 +4,6 @@ module Lexer_1 where
 
 import Data.Char (isSpace, isDigit, isAlpha, isLower, digitToInt)
 
--- The string representing the program has the following syntactic constraints:
--- • All statements end with a semicolon (;).
--- • The string may contain spaces between each token (a token is basically a sequence of characters that are 
--- treated as a unit as it cannot be further broken down. Examples of tokens are the 
--- keywords (while, if, then, else, etc.) variables, operators (+, -, *, /),
--- delimiters/punctuators like the semicolon(;) or brackets, etc. integers and boolean values are also tokens).
--- • Variables begin with a lowercase letter (assume that no variable name can
--- contain a reserved keyword as a substring. For instance, anotherVar is an
--- invalid variable name as it contains the keyword not).
--- • Variables begin with a lowercase letter (assume that no variable name can
--- contain a reserved keyword as a substring. For instance, anotherVar is an
--- invalid variable name as it contains the keyword not).
--- • Operator precedence in arithmetic expressions is the usual: multiplications are
--- performed before additions and subtractions. Additions and subtractions have
--- the same level of precedence and are executed from left to right (i.e. they are
--- left-associative). Multiplications are also left-associative.
--- • Parentheses may be used to add priority to an operation. For instance, 1+2*3
--- = 7 but (1+2)*3 = 9.
--- • In boolean expressions, two instances of the same operator are also computed
--- from left to right. The order of precedence for the operations is (with the first
--- one being executed first): integer inequality (≤), integer equality (==), logical
--- negation (not), boolean equality (=), logical conjunction (and). For instance,
--- not True and 2 ≤ 5 = 3 == 4 is equivalent to (not True) and ((2 ≤ 5) = (3
--- == 4)).
-
-
 -- 1) LEXER
 -- (also known as Lexical Analyzer): The first stage of the process. It takes the source code as input and breaks it down into a sequence of tokens. Tokens are the smallest meaningful units of the program, like keywords, identifiers, literals, operators, etc.
 
