@@ -20,7 +20,7 @@ compA (NUM n) = [Push n]
 compA (ADD e1 e2) = compA e2 ++ compA e1 ++ [Add]
 compA (MULT e1 e2) = compA e2 ++ compA e1 ++ [Mult]
 compA (SUB e1 e2) = compA e2 ++ compA e1 ++ [Sub]
-compA (VARA s) = [Fetch s]
+-- compA (VARA s) = [Fetch s]
 
 compB :: Bexp -> Code
 compB (BOOL b) = if b then [Tru] else [Fals]
@@ -29,7 +29,7 @@ compB (NOT e) = compB e ++ [Neg]
 compB (EQa e1 e2) = compA e2 ++ compA e1 ++ [Equ]
 compB (EQb e1 e2) = compB e2 ++ compB e1 ++ [Equ]
 compB (LE e1 e2) = compA e2 ++ compA e1 ++ [Le]
-compB (VARB s) = [Fetch s]
+-- compB (VARB s) = [Fetch s]
 
 compile :: [Stm] -> Code
 compile [] = []
