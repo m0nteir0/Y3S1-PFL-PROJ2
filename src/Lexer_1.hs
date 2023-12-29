@@ -34,7 +34,7 @@ data Token
     | ElseTok           -- "else"
     -- Variable
     | VarTok String     -- "var" -> always starts with lowercase
-    | AssignTok            -- ":=" -> assign value to variable
+    | AssignTok         -- ":=" -> assign value to variable
     -- end of statement
     |EoSTok             -- ";"
     deriving (Show)

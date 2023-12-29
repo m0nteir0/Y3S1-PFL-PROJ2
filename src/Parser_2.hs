@@ -1,6 +1,4 @@
--- -- 2. Parser
-
--- -- The second stage. It takes the sequence of tokens produced by the lexer and organizes them into a parse tree or abstract syntax tree (AST), which represents the syntactic structure of the program according to the language's grammar rules. The parser checks if the program is syntactically correct.
+-- -- 2. Parser -> The second stage. It takes the sequence of tokens produced by the lexer and organizes them into a parse tree or abstract syntax tree (AST), which represents the syntactic structure of the program according to the language's grammar rules. The parser checks if the program is syntactically correct.
 ------------------------------------------------
 -- linguagem
 -- expressões
@@ -18,6 +16,13 @@
 -- [("y",N 27)]
 
 ------------------------------------------------
+
+-- missing:
+-- 1. introduzir variaveis no parser
+-- 2. corrigir o 'if' para verificar parentesis
+-- 3. fazer parser do while
+-- 4. parser highlevel e lidar com ;
+
 
 module Parser_2 where
 
@@ -60,41 +65,6 @@ data Stm --statements --> TUDO
     deriving Show
 
 
--- ===============================
--- !NOTE: Acho que este pedaço não é necessário, o restante codigo faz o mesmo mas 
--- parsing integers
--- parseInt :: [Token] -> Maybe (Aexp, [Token])
--- parseInt (IntTok n : restTokens)
---   = Just (NUM (fromIntegral n), restTokens)
--- parseInt tokens
---   = Nothing
-
--- -- parsing products
--- parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
--- parseProdOrInt tokens
---   = case parseInt tokens of
---     Just (expr1, MultTok : restTokens1) ->
---       case parseProdOrInt restTokens1 of
---         Just (expr2, restTokens2) ->
---           Just (MULT expr1 expr2, restTokens2)
---         Nothing -> Nothing
---     result -> result -- can be ’Nothing’ or valid
-
--- -- parsing sums
--- parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
--- parseSumOrProdOrInt tokens
---   = case parseProdOrInt tokens of
---     Just (expr1, AddTok : restTokens1) ->
---       case parseProdOrInt restTokens1 of
---         Just (expr2, restTokens2) ->
---           Just (ADD expr1 expr2, restTokens2)
---         Nothing -> Nothing
---     result -> result -- could be ’Nothing’ or valid
-
--- ========================
-
-
--- ========================
 -- parethesised expressions
 parseIntOrPar :: [Token] -> Maybe (Aexp, [Token])
 parseIntOrPar (IntTok n : restTokens)
@@ -109,16 +79,6 @@ parseIntOrPar (OpenTok : restTokens1)
 parseIntOrPar tokens = Nothing
 
 
--- -- Parsing products or parenthesised expressions
--- parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
--- parseProdOrIntOrPar tokens
---   = case parseIntOrPar tokens of
---     Just (expr1, MultTok : restTokens1) ->
---       case parseProdOrIntOrPar restTokens1 of
---         Just (expr2, restTokens2) ->
---           Just (MULT expr1 expr2, restTokens2)
---         Nothing -> Nothing
---     result -> result
 parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
 parseProdOrIntOrPar tokens = do
   (expr1, restTokens1) <- parseIntOrPar tokens
@@ -129,22 +89,6 @@ parseProdOrIntOrPar tokens = do
       (expr2, restTokens2) <- parseIntOrPar restTokens1
       parseRest (MULT expr1 expr2) restTokens2
     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
-
--- -- Parsing sums or products or parenthesised expressions
--- parseSumOrProdOrIntOrPar::[Token] -> Maybe (Aexp, [Token])
--- parseSumOrProdOrIntOrPar tokens
---   = case parseProdOrIntOrPar tokens of
---     Just (expr1, AddTok : restTokens1) ->
---       case parseSumOrProdOrIntOrPar restTokens1 of
---         Just (expr2, restTokens2) ->
---           Just (ADD expr1 expr2, restTokens2)
---         Nothing -> Nothing
---     Just (expr1, SubTok : restTokens1) ->
---       case parseSumOrProdOrIntOrPar restTokens1 of
---         Just (expr2, restTokens2) ->
---           Just (SUB expr1 expr2, restTokens2)
---         Nothing -> Nothing
---     result -> result
 
 
 parseSumOrProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
@@ -196,33 +140,6 @@ parseEqAOrLTOrBoolOrPar tokens =
         Nothing -> Nothing
     Nothing -> parseBoolOrPar tokens -- if there is no integer expression, check if there is a boolean expression
   -- case parseBoolOrPar tokens -- será que é necessario?
-
--- parseEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
--- parseEqAOrLTOrBoolOrPar tokens = do
---   (expr1, restTokens1) <- parseAexp tokens
---   parseRest expr1 restTokens1
---   where
---     -- parseRest expr1 [] = Just (expr1, [])
---     parseRest expr1 [] = Nothing
---     parseRest expr1 (LeTok : restTokens1) = do
---       (expr2, restTokens2) <- parseAexp restTokens1
---       parseRest (LE expr1 expr2) restTokens2
---     parseRest expr1 (EqITok : restTokens1) = do
---       (expr2, restTokens2) <- parseAexp restTokens1
---       parseRest (EQa expr1 expr2) restTokens2
---     -- parseRest expr1 restTokens1 = Just (expr1, restTokens1)
---     parseRest expr1 restTokens1 = Nothing
-
--- -- not (1 == 1)
--- -- not True
--- parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
--- parseNotOrEqAOrLTOrBoolOrPar tokens = do
---   (expr1, restTokens1) <- parseEqAOrLTOrBoolOrPar tokens
---   parseRest expr1 restTokens1
---   where
---     parseRest expr1 [] = Just (expr1, [])
---     parseRest expr1 (NotTok : restTokens1) = parseRest (NOT expr1) restTokens1
---     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 
 parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
@@ -291,16 +208,16 @@ parseStm :: [Token] -> Maybe (Stm, [Token])
 parseStm tokens =
   case parseIf tokens of
     Just (stm, restTokens) -> Just (stm, restTokens)
-    Nothing -> case parseWhile tokens of
+    -- Nothing -> case parseWhile tokens of
+    --   Just (stm, restTokens) -> Just (stm, restTokens)
+    Nothing -> case parseStore tokens of
       Just (stm, restTokens) -> Just (stm, restTokens)
-      Nothing -> case parseStore tokens of
-        Just (stm, restTokens) -> Just (stm, restTokens)
-        Nothing -> case parseBexp tokens of
-          Just (expr, restTokens) -> Just (BExp expr, restTokens)
-          Nothing -> case parseAexp tokens of
-            Just (expr, restTokens) -> Just (AExp expr, restTokens)
-            Nothing -> Nothing
-        -- this will continue
+      Nothing -> case parseBexp tokens of
+        Just (expr, restTokens) -> Just (BExp expr, restTokens)
+        Nothing -> case parseAexp tokens of
+          Just (expr, restTokens) -> Just (AExp expr, restTokens)
+          Nothing -> Nothing
+      -- this will continue
 
 
 
@@ -313,12 +230,11 @@ buildData tokens =
     Nothing -> error "Syntax error"
 
 
-parse = buildData -> parceStm 
 
 -- -- needs to read to EoTTok and call parseStm
 
--- parse :: String -> [Stm]
--- parse = buildData . lexer
+parse :: String -> [Stm]
+parse = buildData . lexer
 
 
 

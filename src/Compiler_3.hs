@@ -35,7 +35,7 @@ compile ((STORE s expr):xs) = case expr of
     Left aexp -> compA aexp
     Right bexp -> compB bexp
     ++ [Store s] ++ compile xs
--- compile ((FETCH s):xs) = Fetch s : compile xs
+compile ((VAR s):xs) = Fetch s : compile xs
 compile ((IF bexp expr1 expr2):xs) = compB bexp ++ [Branch (compile [expr1]) (compile [expr2])] ++ compile xs
 compile ((WHILE bexp expr):xs) = Loop (compB bexp) (compile [expr]) : compile xs
 compile ((AExp aexp):xs) = compA aexp ++ compile xs
