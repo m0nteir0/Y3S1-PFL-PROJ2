@@ -154,6 +154,10 @@ Final State: [("x",N 10),("y",N 1024)]
 
 ## Conclusões
 
+Em suma, este projeto permitiu-nos consolidar os conhecimentos adquiridos ao longo das aulas teóricas e práticas, nomeadamente sobre a linguagem Haskell e a sua sintaxe, mas também levou à exploração de um assunto novo e relevante - estudar o funcionamento e implementação de um compilador.
+
+Através da realização deste projeto, conseguimos compreender melhor o funcionamento de um compilador, desde a análise léxica e sintática, até à geração de código de máquina e execução do mesmo, tendo sido uma tarefa desafiante.
+
 
 
 
