@@ -27,14 +27,6 @@
 module Parser_2 where
 
 import Lexer_1
-import Control.Exception (handle)
--- import Text.Parsec (parse)
-
--- - !TODO: Add FETCH Expression --> figure out how to use it
-
-runTestsP = do
-  print $ lexer "x := 2 * (3 + 4)"
-
 
 -- parsed information will have instructions of this kind of structure:
 data Aexp --arithmetic expressions
