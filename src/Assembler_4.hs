@@ -1,13 +1,17 @@
+-- =================== ASSEMBLER ===========================
 module Assembler_4 where
 
 import Data.List (sortOn)
 
+-- Inst: A data type representing the different instructions that can be executed by the stack machine.
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
   Branch Code Code | Loop Code Code
   deriving Show
+-- Code: A type alias for a list of instructions.
 type Code = [Inst]
 
+-- ItemBool: A data type representing the stack's and state's boolean values.
 data ItemBool = TT | FF deriving Show
 instance Eq ItemBool where
     (==) :: ItemBool -> ItemBool -> Bool
@@ -15,6 +19,8 @@ instance Eq ItemBool where
     FF == FF = True
     _  == _  = False
 
+
+-- StackItem: A data type representing the different types of items that can be stored on the stack.
 data StackItem = N Integer | B ItemBool deriving Show
 instance Eq StackItem where
     (==) :: StackItem -> StackItem -> Bool
@@ -22,49 +28,63 @@ instance Eq StackItem where
     B b1 == B b2 = b1 == b2
     _    == _    = False
 
+
+-- Stack: A type alias for a list of stack items.
 type Stack =  [StackItem]
 
+
+-- State: A type alias for a list of key-value pairs, representing the state of the stack machine.
 type State = [(String, StackItem)]
 
 
+-- createEmptyStack: A function that creates an empty stack.
 createEmptyStack :: Stack
 createEmptyStack = []
 
+-- createEmptyState: A function that creates an empty state.
 createEmptyState :: State
 createEmptyState = []
 
+-- stackItem2Str: A function that converts a stack item into a string.
 stackItem2Str :: StackItem -> String
 stackItem2Str (B TT) = "True"
 stackItem2Str (B FF) = "False"
 stackItem2Str (N n) = show n
 
--- (e) Implement the stack2Str function
+
+-- stack2Str: A function that converts a stack into a string.
 stack2Str :: Stack -> String
 stack2Str [] = ""
 stack2Str [x] = stackItem2Str x
 stack2Str (x:xs) = stackItem2Str x ++ "," ++ stack2Str xs
 
+
+-- state2Str: A function that converts a state into a string.
 state2Str :: State -> String
 state2Str [] = ""
 state2Str [x] = fst x ++ "=" ++ stackItem2Str (snd x)
 state2Str (x:xs) = fst x ++ "=" ++ stackItem2Str (snd x) ++ "," ++ state2Str xs
 
 
+-- updateState: A function that updates the state with a new key-value pair, and sorts it alphabetically.
 updateState :: String -> StackItem -> State -> State
 updateState key value state = sortOn fst (updateStateUnsorted key value state)
 
+
+-- updateStateUnsorted: A function that updates the state with a new key-value pair, or updates an already existing pair with the new value.
 updateStateUnsorted :: String -> StackItem -> State -> State
-updateStateUnsorted key value [] = [(key, value)] --item nao foi encontrado, entao adiciona
-updateStateUnsorted key value ((k,v):xs) --iterar ate encontrar o item ou chegar no final da lista
+updateStateUnsorted key value [] = [(key, value)] -- key was not found, add new pair
+updateStateUnsorted key value ((k,v):xs)          -- iterate through the state to find if key already exists, and if so, updates it's value
     | key == k  = (key, value) : xs
     | otherwise = (k, v) : updateStateUnsorted key value xs
 
+-- run: A function that executes the code on the machine.
 run :: (Code, Stack, State) -> (Code, Stack, State)
 run ([], stack, state) = ([], stack, state)
 run ((Push n):code, stack, state) = run (code, N n:stack, state)
 run (Add:code, (N n1):(N n2):stack, state) = run (code, N (n1 + n2):stack, state)
 run (Mult:code, (N n1):(N n2):stack, state) = run (code, N (n1 * n2):stack, state)
-run (Sub:code, (N n1):(N n2):stack, state) = run (code, N (n1 - n2):stack, state) -- !DOUBT: n1 - n2 ou n2 - n1?
+run (Sub:code, (N n1):(N n2):stack, state) = run (code, N (n1 - n2):stack, state)
 run (Tru:code, stack, state) = run (code, B TT:stack, state)
 run (Fals:code, stack, state) = run (code, B FF:stack, state)
 run (Equ:code, x1:x2:stack, state) = run (code, if x1 == x2 then B TT:stack else B FF:stack, state) 
@@ -79,38 +99,3 @@ run (Noop:code, stack, state) = run (code, stack, state)
 run (Branch code1 code2:code, (B b):stack, state) = run (if b == TT then code1 ++ code else code2 ++ code, stack, state)
 run (Loop code1 code2:code, stack, state) = run (code1 ++ [Branch (code2 ++ [Loop code1 code2]) [Noop]], stack, state)
 run (_, _, _) = error "Run-time error"
-
--- To help you test your assembler
-testAssembler :: Code -> (String, String)
-testAssembler code = (stack2Str stack, state2Str state)
-  where (_,stack,state) = run(code, createEmptyStack, createEmptyState)
-
--- Examples:
--- testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
--- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
--- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
--- testAssembler [Push (-20),Tru,Fals] == ("False,True,-20","")
--- testAssembler [Push (-20),Tru,Tru,Neg] == ("False,True,-20","")
--- testAssembler [Push (-20),Tru,Tru,Neg,Equ] == ("False,-20","")
--- testAssembler [Push (-20),Push (-21), Le] == ("True","")
--- testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"] == ("","x=4")
--- testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]] == ("","fact=3628800,i=1")
-
-runTests = do
-    print $ testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
-    print $ testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
-    print $ testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
-    print $ testAssembler [Push (-20),Tru,Fals] == ("False,True,-20","")
-    print $ testAssembler [Push (-20),Tru,Tru,Neg] == ("False,True,-20","")
-    print $ testAssembler [Push (-20),Tru,Tru,Neg,Equ] == ("False,-20","")
-    print $ testAssembler [Push (-20),Push (-21), Le] == ("True","")
-    print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"] == ("","x=4")
-    print $ testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]] == ("","fact=3628800,i=1")
-    
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "y"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y", Fetch "x"]
-    -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y", Fetch "x", Fetch "y"]

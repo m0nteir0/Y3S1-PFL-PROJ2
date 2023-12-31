@@ -1,14 +1,9 @@
-{-# OPTIONS_GHC -Wno-deferred-out-of-scope-variables #-}
-
+-- =================== LEXER ===========================
 module Lexer_1 where 
-
 import Data.Char (isSpace, isDigit, isAlpha, isLower, digitToInt)
 
--- 1) LEXER
--- (also known as Lexical Analyzer): The first stage of the process. It takes the source code as input and breaks it down into a sequence of tokens. Tokens are the smallest meaningful units of the program, like keywords, identifiers, literals, operators, etc.
 
-lexer :: String -> [Token]
-
+-- Token: A data type representing the different tokens that can be produced by the lexer.
 data Token
     = OpenTok           -- "("
     | CloseTok          -- ")"
@@ -39,6 +34,9 @@ data Token
     |EoSTok             -- ";"
     deriving (Show)
 
+
+-- Eq Token: An instance of the Eq class for the Token data type. 
+-- This allows us to compare tokens for equality and inequality.
 instance Eq Token where
     OpenTok == OpenTok = True
     CloseTok == CloseTok = True
@@ -62,7 +60,11 @@ instance Eq Token where
     AssignTok == AssignTok = True
     EoSTok == EoSTok = True
     _ == _ = False
-    
+
+
+-- lexer: A function that takes a string and returns a list of tokens. 
+-- It recursively processes the string, identifying the tokens one by one.
+lexer :: String -> [Token]    
 lexer [] = []
 lexer ('+' : restStr) = AddTok : lexer restStr
 lexer ('*' : restStr) = MultTok : lexer restStr
@@ -74,26 +76,25 @@ lexer ('<' : '=' : restStr) = LeTok : lexer restStr
 lexer ('=' : restStr) = EqBTok : lexer restStr
 lexer (';' : restStr) = EoSTok : lexer restStr
 lexer (':' : '=' : restStr) = AssignTok : lexer restStr
---As-patterns allow you to pattern-match on a part of the structure, while still keeping a reference to the whole structure. In this case, str is the whole structure (a list of characters, or a string), and chr : _ is a pattern that matches the structure.
--- The pattern chr : reststr is a way of decomposing the list str. In Haskell, a list can be split into its head and its tail. The head of the list is its first element, and the tail is the rest of the list. The : operator is used to construct a list by adding an element to the front of another list, but in the context of pattern matching, it's used to deconstruct a list into its head and tail.
 lexer str@(chr : restStr)
     | isSpace chr = lexer restStr
     | isAlpha chr = lexAlpha str
-    | isDigit chr = lexDigit str                --string starts with a digit (@ means "as pattern")
+    | isDigit chr = lexDigit str                
     | otherwise = error ("unexpected character: " ++ [head str])
-    -- | isDigit chr = IntTok (stringToInt digitStr) : lexer restStr
-    -- where
-    --     (digitStr, restStr') = span isDigit str
-    --     stringToInt = foldl (\acc chr -> 10 * acc + digitToInt chr) 0
 
 
+-- lexDigit: A function that takes a string that starts with a digit and returns a list of tokens.
+-- It separates the leading number from the rest of the string and converts it to an integer token, with the correct value.
+lexDigit :: String -> [Token]
 lexDigit str = IntTok (stringToInt digitStr) : lexer restStr
     where
         (digitStr, restStr) = span isDigit str
         stringToInt = foldl (\acc chr -> 10 * acc + digitToInt chr) 0
 
 
-lexAlpha :: [Char] -> [Token]
+-- lexAlpha: A function that takes a string that starts with an alphabetic character and returns a list of tokens.
+-- It separates the leading keyword or variable from the rest of the string and converts it to the appropriate token.
+lexAlpha :: String -> [Token]
 lexAlpha str
     | keyword == "True" = TruTok : lexer restStr
     | keyword == "False" = FalsTok : lexer restStr
@@ -106,41 +107,7 @@ lexAlpha str
     | keyword == "else" = ElseTok : lexer restStr
     | isLower (head varStr) = VarTok varStr : lexer restStr'
     | otherwise = error ("variables should start with lowecase char, not: " ++ [head str])
-    -- | otherwise = error "unexpected character"
     where
         (keyword, restStr) = span isAlpha str
         (varStr, restStr') = span isAlpha str
-
-
-runTests = do                                            
-    print $ lexer "True"
-    print $ lexer "False"
-    print $ lexer "True and False"
-    print $ lexer "123 + 1"
-    print $ lexer "1 + 2 * 3"
-    print $ lexer "x := 5; x := x - 1;"
-    print $ lexer "if (not True and 2 <= 5 = 3 == 4) then x :=1 else y := 2"
-    -- print $ lexer
-    -- print $ lexer
-    -- print $ lexer
-    -- print $ lexer
-    -- print $ lexer "."
-
-
-
--- --As-patterns allow you to pattern-match on a part of the structure, while still keeping a reference to the whole structure. In this case, str is the whole structure (a list of characters, or a string), and chr : _ is a pattern that matches the structure.
--- -- The pattern chr : _ is a way of decomposing the list str. In Haskell, a list can be split into its head and its tail. The head of the list is its first element, and the tail is the rest of the list. The : operator is used to construct a list by adding an element to the front of another list, but in the context of pattern matching, it's used to deconstruct a list into its head and tail.
--- lexer str@(chr : _) --string starts with a digit (@ means "as pattern")
---     | isDigit chr
---     = IntTok (stringToInt digitStr) : lexer restStr
---     where
---         -- (digitStr, restStr) = span isDigit str -- DOS SLIDES: binding uses the break function to split the input string into two parts: digitStr (a string of consecutive digits at the start of the input string) and restStr (the rest of the string).
---         (digitStr, restStr) = span isDigit str
---         -- convert a string to an integer
---         stringToInt :: String -> Int
---         stringToInt=foldl (\acc chr->10*acc+digitToInt chr) 0
-
---     -- runtime error:
--- lexer (_ : restString)
---     = error ("unexpected character: '" ++ show chr ++ "'")
 

@@ -40,7 +40,7 @@ data Aexp --arithmetic expressions
     | ADD Aexp Aexp -- addition node
     | MULT Aexp Aexp -- multiplication node
     | SUB Aexp Aexp -- subtraction node
-    -- | VARA String -- get the value of a variable
+    | VAR String -- get the value of a variable
     deriving Show
 
 data Bexp --boolean expressions

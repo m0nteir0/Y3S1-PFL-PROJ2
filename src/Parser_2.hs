@@ -16,14 +16,6 @@
 -- [("y",N 27)]
 
 ------------------------------------------------
-
--- missing:
--- 1. introduzir variaveis no parser
--- 2. corrigir o 'if' para verificar parentesis
--- 3. fazer parser do while
--- 4. parser highlevel e lidar com ;
-
-
 module Parser_2 where
 
 import Lexer_1
@@ -40,17 +32,13 @@ data Aexp --arithmetic expressions
 data Bexp --boolean expressions
     = BOOL Bool -- boolean constants
     | AND Bexp Bexp -- and node
-    -- | Or Bexp Bexp -- or node
     | NOT Bexp -- not node
     | EQa Aexp Aexp -- equal node --
     | EQb Bexp Bexp -- equal node 
     | LE Aexp Aexp -- less than or equal node
-    -- | VARB String -- get the value of a variable
     deriving Show
 
--- type Expr = Either Aexp Bexp
-
-data Stm --statements --> TUDO
+data Stm --statements
     = STORE String Aexp-- store node
     -- = STORE String  (Either Aexp Bexp)-- store node
     -- | VAR String      -- get the value of a variable
@@ -67,7 +55,6 @@ parseIntOrPar (IntTok n : restTokens) = Just (NUM (fromIntegral n), restTokens)
 parseIntOrPar (VarTok s : restTokens) = Just (VAR s, restTokens)
 parseIntOrPar (OpenTok : restTokens1)
   = case parseAexp restTokens1 of
-  -- = case parseSumOrProdOrIntOrPar restTokens1 of
     Just (expr, CloseTok : restTokens2) ->
       Just (expr, restTokens2)
     Just _ -> Nothing -- no closing paren
@@ -102,27 +89,26 @@ parseSumOrProdOrIntOrPar tokens = do
     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 
--- top-level
 parseAexp :: [Token] -> Maybe (Aexp, [Token])
 parseAexp tokens =
   case parseSumOrProdOrIntOrPar tokens of
     Just (expr, restTokens) -> Just (expr, restTokens)
-    _ -> Nothing  -- !WARNING: may need a result -> result here
+    _ -> Nothing
 
 -- ========================
+
 parseBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])
 parseBoolOrPar (TruTok : restTokens) = Just (Right (BOOL True), restTokens)
 parseBoolOrPar (FalsTok : restTokens) = Just (Right (BOOL False), restTokens)
--- parseBoolOrPar (VarTok s : restTokens) = Just (Right (VARB s), restTokens)
 parseBoolOrPar (OpenTok : restTokens1) =
-  case parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1 of -- !TODO: change function name
+  case parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1 of
     Just (expr, CloseTok : restTokens2) ->
       Just (expr, restTokens2)
     Just _ -> Nothing -- no closing paren
     Nothing -> Nothing
 parseBoolOrPar tokens = Nothing
 
--- this old version of the parser works
+
 parseEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])
 parseEqAOrLTOrBoolOrPar tokens =
   case parseAexp tokens of --see if there is an integer expression
@@ -130,7 +116,6 @@ parseEqAOrLTOrBoolOrPar tokens =
       case parseAexp restTokens1 of -- if there is, check if there is another integer expression
         Just (expr2, restTokens2) -> Just (Right(LE expr1 expr2), restTokens2) -- if there is, return the expression
         Nothing -> Nothing
-    -- Just result -> Just result 
     Just (expr1, EqITok : restTokens1) -> --if there is, check if there is a less than or equal operator next
       case parseAexp restTokens1 of -- if there is, check if there is another integer expression
         Just (expr2, restTokens2) -> Just (Right (EQa expr1 expr2), restTokens2) -- if there is, return the expression
@@ -138,7 +123,6 @@ parseEqAOrLTOrBoolOrPar tokens =
     Just (expr1, restTokens1) -> Just (Left expr1, restTokens1)-- means that it is exclusively an aexp, not part of a boolexp
 
     Nothing -> parseBoolOrPar tokens -- if there is no integer expression, check if there is a boolean expression
-  -- case parseBoolOrPar tokens -- será que é necessario?
 
 
 parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])

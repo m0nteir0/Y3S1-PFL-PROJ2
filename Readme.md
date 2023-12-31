@@ -27,7 +27,7 @@ Para executar o projeto, é necessário ter instalado o [GHC](https://www.haskel
 
 ## Descrição do Projeto
 
-Para este projeto, foi-nos proposto a implementação de um compilador para uma máquina de baixo nível, que recebe como input um programa escrito numa linguagem de alto nível e o converte para uma lista de instruções que a máquina de baixo nível consegue interpretar.
+Para este projeto, foi-nos proposto a implementação de um compilador para uma máquina de baixo nível, que recebe como input um programa escrito numa linguagem de alto nível, converte-o para uma lista de intruções que a máquina de baixo nível consegue interpretar.
 
 
 Para tal, dividimos o projeto em 3 subtarefas:
