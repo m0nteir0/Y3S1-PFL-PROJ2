@@ -27,6 +27,7 @@
 module Parser_2 where
 
 import Lexer_1
+import Control.Exception (handle)
 -- import Text.Parsec (parse)
 
 -- - !TODO: Add FETCH Expression --> figure out how to use it
@@ -41,7 +42,7 @@ data Aexp --arithmetic expressions
     | ADD Aexp Aexp -- addition node
     | MULT Aexp Aexp -- multiplication node
     | SUB Aexp Aexp -- subtraction node
-    -- | VAR String -- get the value of a variable
+    | VAR String -- get the value of a variable
     deriving Show
 
 data Bexp --boolean expressions
@@ -58,7 +59,8 @@ data Bexp --boolean expressions
 -- type Expr = Either Aexp Bexp
 
 data Stm --statements --> TUDO
-    = STORE String  (Either Aexp Bexp)-- store node
+    = STORE String Aexp-- store node
+    -- = STORE String  (Either Aexp Bexp)-- store node
     -- | VAR String      -- get the value of a variable
     | IF Bexp Stm Stm -- if node
     | WHILE Bexp Stm -- loop node
@@ -70,7 +72,7 @@ data Stm --statements --> TUDO
 -- parethesised expressions
 parseIntOrPar :: [Token] -> Maybe (Aexp, [Token])
 parseIntOrPar (IntTok n : restTokens) = Just (NUM (fromIntegral n), restTokens)
--- parseIntOrPar (VarTok s : restTokens) = Just (VAR s, restTokens)
+parseIntOrPar (VarTok s : restTokens) = Just (VAR s, restTokens)
 parseIntOrPar (OpenTok : restTokens1)
   = case parseAexp restTokens1 of
   -- = case parseSumOrProdOrIntOrPar restTokens1 of
@@ -205,20 +207,69 @@ parseIf (IfTok : restTokens) = do
   (Right bexp, restTokens1) <- parseBexp restTokens
   case restTokens1 of
     ThenTok : restTokens2 -> do
+      -- case restTokens2 of
+      --   OpenTok : restTokens3 -> do
+      --     (stm1, CloseTok : restTokens4) <- parseStm restTokens3
       (stm1, restTokens3) <- parseStm restTokens2
       case restTokens3 of
-        EoSTok : ElseTok : restTokens4 -> do
-          (stm2, EoSTok :restTokens5) <- parseStm restTokens4
+        -- EoSTok : ElseTok : restTokens4 -> do
+        ElseTok : restTokens4 -> do
+          -- (stm2, EoSTok :restTokens5) <- parseStm restTokens4
+          (stm2, restTokens5) <- parseStm restTokens4
           return (IF bexp stm1 stm2, restTokens5)
         _ -> Nothing
     _ -> Nothing
 parseIf tokens = Nothing
 
 
+-- parseIf :: [Token] -> Maybe (Stm, [Token])
+-- parseIf (IfTok : restTokens) = do
+--   (Right bexp, restTokens1) <- parseBexp restTokens
+--   case restTokens1 of
+--     ThenTok : restTokens2 -> do
+--       case restTokens2 of
+--         OpenTok : restTokens3 -> do
+--           (stms, CloseTok : EoSTok : restTokens4) <- parseStms restTokens3
+--           let stm1 = foldr1 Seq stms
+--           continueWithElse stm1 restTokens4
+--         _ -> do
+--           (stm1, restTokens3) <- parseStm restTokens2
+--           continueWithElse stm1 restTokens3
+--     _ -> Nothing
+--   where
+--     parseStms :: [Token] -> Maybe ([Stm], [Token])
+--     parseStms (CloseTok : EoSTok : restTokens) = Just ([], restTokens)
+--     parseStms tokens = do
+--       (stm, restTokens1) <- parseStm tokens
+--       (stms, restTokens2) <- parseStms restTokens1
+--       Just (stm : stms, restTokens2)
+
+--     continueWithElse :: Stm -> [Token] -> Maybe (Stm, [Token])
+--     continueWithElse stm1 (ElseTok : restTokens4) = do
+--       (stm2, restTokens5) <- parseStm restTokens4
+--       Just (IF bexp stm1 stm2, restTokens5)
+--     continueWithElse _ _ = Nothing
+-- parseIf tokens = Nothing
+
+
+
+
+parseWhile :: [Token] -> Maybe (Stm, [Token])
+parseWhile (WhileTok : restTokens) = do
+  (Right bexp, restTokens1) <- parseBexp restTokens
+  case restTokens1 of
+    DoTok : restTokens2 -> do
+      -- (stm, EoSTok:restTokens3) <- parseStm restTokens2
+      (stm, restTokens3) <- parseStm restTokens2
+      return (WHILE bexp stm, restTokens3)
+    _ -> Nothing
+
+
 parseStore :: [Token] -> Maybe (Stm, [Token])
 parseStore (VarTok s : AssignTok : restTokens) = 
-   case parseBexp restTokens of -- maybe AExp is enough
-    Just (expr, restTokens1) -> Just (STORE s expr, restTokens1)
+   case parseAexp restTokens of -- maybe AExp is enough
+    -- Just (expr, restTokens1) -> Just (STORE s expr, restTokens1)
+    Just (expr, EoSTok:restTokens1) -> Just (STORE s expr, restTokens1)
     Nothing -> Nothing
 parseStore tokens = Nothing         
 
@@ -241,15 +292,31 @@ parseStore tokens = Nothing
 
 parseStm :: [Token] -> Maybe (Stm, [Token])
 parseStm (IfTok : tokens)  = parseIf (IfTok:tokens)
--- parseStm (WhileTok : tokens)  = parseWhile (WhileTok:tokens)
+parseStm (WhileTok : tokens)  = parseWhile (WhileTok:tokens)
 parseStm (VarTok s : AssignTok : tokens)  = parseStore (VarTok s : AssignTok : tokens)
 parseStm (EoSTok : tokens) = parseStm tokens --added
-
 parseStm tokens = 
   case parseBexp tokens of
     Just ( Right expr, restTokens) -> Just (BExp expr, restTokens)
     Just ( Left expr, restTokens) -> Just (AExp expr, restTokens)
     Nothing -> Nothing
+
+-- parseStm :: [Token] -> Maybe (Stm, [Token])
+-- parseStm tokens =
+--   case parseIf tokens of
+--     Just (stm, restTokens) -> handleSemicolon stm restTokens
+--     Nothing -> case parseStore tokens of   
+--       Just (stm, restTokens1) -> handleSemicolon stm restTokens1
+--       Nothing -> case parseBexp tokens of
+--         Just (Left aexp, restTokens) -> 
+--           handleSemicolon  (AExp aexp) restTokens
+--         Just (Right bexp, restTokens) -> 
+--           handleSemicolon (BExp bexp) restTokens
+--         Nothing -> Nothing
+--   where
+--     handleSemicolon stm [] = Just (stm, [])
+--     handleSemicolon stm (EoSTok : restTokens) = Just (stm, restTokens)
+--     handleSemicolon stm restTokens = Nothing -- handle the case where there's no semicolon
 
 buildData:: [Token] -> [Stm]
 buildData [] = [] -- caso base, quando a lista de tokens estiver vazia
