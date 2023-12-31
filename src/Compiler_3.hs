@@ -30,7 +30,7 @@ compB (LE e1 e2) = compA e2 ++ compA e1 ++ [Le]
 compile :: [Stm] -> Code
 compile [] = []
 compile ((STORE s expr):xs) = compA expr ++ [Store s] ++ compile xs
-compile ((IF bexp expr1 expr2):xs) = compB bexp ++ [Branch (compile [expr1]) (compile [expr2])] ++ compile xs
-compile ((WHILE bexp expr):xs) = Loop (compB bexp) (compile [expr]) : compile xs
+compile ((IF bexp expr1 expr2):xs) = compB bexp ++ [Branch (compile expr1) (compile expr2)] ++ compile xs
+compile ((WHILE bexp expr):xs) = Loop (compB bexp) (compile expr) : compile xs
 compile ((AExp aexp):xs) = compA aexp ++ compile xs
 compile ((BExp bexp):xs) = compB bexp ++ compile xs
