@@ -27,7 +27,7 @@
 module Parser_2 where
 
 import Lexer_1
-import Text.Parsec (parse)
+-- import Text.Parsec (parse)
 
 -- - !TODO: Add FETCH Expression --> figure out how to use it
 
@@ -153,13 +153,6 @@ parseNotOrEqAOrLTOrBoolOrPar (NotTok : restTokens) = do
   return (Right (NOT expr), restTokens1)
 parseNotOrEqAOrLTOrBoolOrPar tokens = parseEqAOrLTOrBoolOrPar tokens
 
--- parseNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])
--- parseNotOrEqAOrLTOrBoolOrPar (NotTok : restTokens) = do
---   (expr, restTokens1) <- parseEqAOrLTOrBoolOrPar restTokens
---   return (Right (NOT expr), restTokens1)
--- parseNotOrEqAOrLTOrBoolOrPar tokens = parseEqAOrLTOrBoolOrPar tokens
-
-
 
 parseEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])
 parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
@@ -179,39 +172,15 @@ parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
           parseRest (EQb expr1 bexp) restTokens2
     parseRest expr1 restTokens1 = Just (Right expr1, restTokens1)
 
--- parseEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
--- parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
---   (expr1, restTokens1) <- parseNotOrEqAOrLTOrBoolOrPar tokens
---   parseRest expr1 restTokens1
---   where
---     parseRest expr1 [] = Just (expr1, [])
---     parseRest expr1 (EqBTok : restTokens1) = do
---       (expr2, restTokens2) <- parseNotOrEqAOrLTOrBoolOrPar restTokens1
---       parseRest (EQb expr1 expr2) restTokens2
---     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
-
--- parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Bexp, [Token])
--- parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
---   (expr1, restTokens1) <- parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens
---   parseRest expr1 restTokens1
---   where
---     parseRest expr1 [] = Just (expr1, [])
---     parseRest expr1 (AndTok : restTokens1) = do
---       (expr2, restTokens2) <- parseEqBOrNotOrEqAOrLTOrBoolOrPar restTokens1
---       parseRest (AND expr1 expr2) restTokens2
---     parseRest expr1 restTokens1 = Just (expr1, restTokens1)
 
 parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar :: [Token] -> Maybe (Either Aexp Bexp, [Token])
 parseAndOrEqBOrNotOrEqAOrLTOrBoolOrPar tokens = do
   result <- parseEqBOrNotOrEqAOrLTOrBoolOrPar tokens
   case result of
     (Left aexp, restTokens1) -> 
-      -- handle the case where an Aexp is parsed
       Just (Left aexp, restTokens1)
     (Right bexp, restTokens1) -> 
-      -- handle the case where a Bexp is parsed
       parseRest bexp restTokens1
-    -- Nothing -> Nothing
   where
     parseRest expr1 [] = Just (Right expr1, [])
     parseRest expr1 (AndTok : restTokens1) = do
@@ -248,15 +217,9 @@ parseIf tokens = Nothing
 
 parseStore :: [Token] -> Maybe (Stm, [Token])
 parseStore (VarTok s : AssignTok : restTokens) = 
-   case parseBexp restTokens of
+   case parseBexp restTokens of -- maybe AExp is enough
     Just (expr, restTokens1) -> Just (STORE s expr, restTokens1)
     Nothing -> Nothing
-  -- case parseAexp restTokens of
-  --   Just (expr, restTokens1) -> Just (STORE s (Left expr), restTokens1)
-  --   Nothing -> 
-  --     case parseBexp restTokens of
-  --       Just (expr, restTokens1) -> Just (STORE s (Right expr), restTokens1)
-  --       Nothing -> Nothing
 parseStore tokens = Nothing         
 
 
@@ -329,5 +292,12 @@ parse = buildData . lexer
 -- 5. logical conjunction (and)   -> feito primeiro
 
 
--- "if (1==1 = True) then (1+1) else 2+2"
--- Just (IF )
+-- tests:
+-- parse "x := 2 * (3 + 4)"
+-- answer: [Store "x" (Mult (Num 2) (Add (Num 3) (Num 4)))]
+-- with if:
+-- parse "if true then x := 2 * (3 + 4); else x := 2 * (3 + 4);"
+-- answer: [If (Bool True) (Store "x" (Mult (Num 2) (Add (Num 3) (Num 4)))) (Store "x" (Mult (Num 2) (Add (Num 3) (Num 4))))]
+-- parse several statements:
+-- parse "x := 2 * (3 + 4); y := 2 * (3 + 4);"
+-- answer: [Store "x" (Mult (Num 2) (Add (Num 3) (Num 4))),Store "y" (Mult (Num 2) (Add (Num 3) (Num 4)))]
