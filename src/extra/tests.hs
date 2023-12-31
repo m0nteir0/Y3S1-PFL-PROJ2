@@ -19,8 +19,51 @@ runLexerTests = do
 
 
 
+-- ============================================ PARSER ============================================
+
+-- ========================
+  -- examples of use AEXP and BEXP in expressions
+-- 3+2 <= 5
+-- 3+2 <= 5 and 3+2 <= 5
+-- 3+2==10   -- False
+-- False and True
+-- False and True = False
+-- False and True = True
+-- 3+2==10 = False   (boolean equality uses =, while integer equality uses ==)
+
+
+-- !TODO: figure out what functions are needed
+--  In boolean expressions, two instances of the same operator are also computed
+-- from left to right. The order of precedence for the operations is (with the first
+-- one being executed first): integer inequality (≤), integer equality (==), logical
+-- negation (not), boolean equality (=), logical conjunction (and). For instance,
+-- not True and 2 ≤ 5 = 3 == 4 is equivalent to (not True) and ((2 ≤ 5) = (3
+-- == 4))
+-- ORDER OF PRECEDENCE:
+-- 0. Boolean Value & Arithmetic expressions
+-- 1. integer inequality (≤)      -> arithmetic expressions
+-- 2. integer equality (==)     -> arithmetic expressions
+-- 3. logical negation (not)
+-- 4. boolean equality (=)
+-- 5. logical conjunction (and)   -> feito primeiro
+
+
+-- tests:
+-- parse "x := 2 * (3 + 4)"
+-- answer: [Store "x" (Mult (Num 2) (Add (Num 3) (Num 4)))]
+-- with if:
+-- parse "if true then x := 2 * (3 + 4); else x := 2 * (3 + 4);"
+-- answer: [If (Bool True) (Store "x" (Mult (Num 2) (Add (Num 3) (Num 4)))) (Store "x" (Mult (Num 2) (Add (Num 3) (Num 4))))]
+-- parse several statements:
+-- parse "x := 2 * (3 + 4); y := 2 * (3 + 4);"
+-- answer: [Store "x" (Mult (Num 2) (Add (Num 3) (Num 4))),Store "y" (Mult (Num 2) (Add (Num 3) (Num 4)))]
+
+
+
 
 -- ============================================ COMPILER ============================================
+
+
 runCompilerTests = do 
     print $ compile [AExp (SUB (SUB (ADD (NUM 1) (MULT (NUM 2) (NUM 4))) (MULT (NUM 2) (NUM 6))) (NUM 4))]                      -- == [Push 4, Push 3, Sub, Push 2, Mult, Push 1, Add]
     -- Test STORE with arithmetic expressions
@@ -68,9 +111,6 @@ runCompilerTests = do
 
 
 
-
-
-
 -- ============================================ ASSEMBLER ============================================
     
 -- To help you test your assembler
@@ -107,3 +147,4 @@ runTests = do
     -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y"]
     -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y", Fetch "x"]
     -- print $ testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x", Fetch "x", Fetch "y", Fetch "x", Fetch "y", Fetch "x", Fetch "y"]
+
