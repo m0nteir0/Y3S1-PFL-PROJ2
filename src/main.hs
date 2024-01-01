@@ -17,7 +17,7 @@ testParser programCode = (stack2Str stack, state2Str state)
 
 main :: IO ()
 main = do
-    putStrLn "========= Project 2: COMPILER =========\n\nPFL 23/24 \nGroup:\n - Guilherme Monteiro | 202108668\n - Sofia Sá | 202108676\n"
+    putStrLn "========= Haskell Project - COMPILER =========\n\nPFL 23/24 \nGroup T06_G02:\n - Guilherme Monteiro | 202108668\n - Sofia Sá | 202108676\n"
     putStrLn "\nEnter program code:"
     programCode <- getLine
     let toks = Lexer.lexer programCode

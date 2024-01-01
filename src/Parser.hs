@@ -96,9 +96,9 @@ parseBoolOrPar (OpenTok : restTokens1) =
 parseBoolOrPar tokens = Nothing
 
 
--- parseEqAOrLTOrAexpOrHigher: Parses an arithmetic expression, less than, equality, or boolean expression from a list of tokens.
-parseEqAOrLTOrAexpOrHigher :: [Token] -> Maybe (Either Aexp Bexp, [Token])
-parseEqAOrLTOrAexpOrHigher tokens =
+-- parseEqAOrLEOrAexpOrHigher: Parses an arithmetic expression, less than, equality, or boolean expression from a list of tokens.
+parseEqAOrLEOrAexpOrHigher :: [Token] -> Maybe (Either Aexp Bexp, [Token])
+parseEqAOrLEOrAexpOrHigher tokens =
   case parseAexp tokens of --see if there is an integer expression
     Just (expr1, LeTok : restTokens1) -> --if there is, check if there is a less than or equal operator next
       case parseAexp restTokens1 of -- if there is, check if there is another integer expression
@@ -116,9 +116,9 @@ parseEqAOrLTOrAexpOrHigher tokens =
 -- parseNotOrAexpOrHigher: Parses a NOT, arithmetic expression, less than, equality, or boolean expression from a list of tokens.
 parseNotOrAexpOrHigher :: [Token] -> Maybe (Either Aexp Bexp, [Token])
 parseNotOrAexpOrHigher (NotTok : restTokens) = do
-  (Right expr, restTokens1) <- parseEqAOrLTOrAexpOrHigher restTokens
+  (Right expr, restTokens1) <- parseEqAOrLEOrAexpOrHigher restTokens
   return (Right (NOT expr), restTokens1)
-parseNotOrAexpOrHigher tokens = parseEqAOrLTOrAexpOrHigher tokens
+parseNotOrAexpOrHigher tokens = parseEqAOrLEOrAexpOrHigher tokens
 
 
 -- parseEqBOrAexpOrHigher: Parses an equality, NOT, arithmetic expression, less than, or boolean expression from a list of tokens.
