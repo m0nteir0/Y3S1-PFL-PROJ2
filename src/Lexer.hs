@@ -1,5 +1,6 @@
 -- =================== LEXER ===========================
-module Lexer_1 where 
+
+module Lexer where 
 import Data.Char (isSpace, isDigit, isAlpha, isLower, digitToInt)
 
 

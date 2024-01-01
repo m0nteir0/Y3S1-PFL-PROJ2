@@ -1,9 +1,8 @@
 module Main where
-
--- import Lexer
-import Parser_2
-import Compiler_3
-import Assembler_4
+import Lexer
+import Parser 
+import Compiler
+import Assembler
 
 
 -- To help you test your assembler
@@ -21,13 +20,15 @@ main = do
     putStrLn "========= Project 2: COMPILER =========\n\nPFL 23/24 \nGroup:\n - Guilherme Monteiro | 202108668\n - Sofia Sá | 202108676\n"
     putStrLn "\nEnter program code:"
     programCode <- getLine
-    let exps = Parser_2.parse programCode
+    let toks = Lexer.lexer programCode
+    putStrLn ("\nLexed: \n" ++ show toks)
+    let exps = Parser.parse programCode
     putStrLn ("\nParsed: \n" ++ show exps)
-    let insts = Compiler_3.compile exps
+    let insts = Compiler.compile exps
     putStrLn ("\nCompiled: \n" ++ show insts)
     let machine = (insts, createEmptyStack, createEmptyState)
     putStrLn "\n======= Result ======="
-    let (code, stack, state) =  Assembler_4.run machine
+    let (code, stack, state) =  Assembler.run machine
     putStrLn ("Stack: " ++ if null stack then "empty" else stack2Str stack)
     putStrLn ("State: " ++ state2Str state)
     putStrLn "\n\n"

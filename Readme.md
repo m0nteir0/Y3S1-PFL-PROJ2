@@ -1,15 +1,3 @@
-" 
-The readme file should include the identification of the group (group name, student number, and full name of each member of the group), as well as an indication of the contribution
-(in percentages, adding up to 100%) of each member of the group to the assignment. It
-should also describe the strategy used for solving both parts of the assignment, detailing the
-decisions made when defining the data and functions defined in the program.
-"
-
---> ACRESCENTAR PEDAÇOS DE CODIGO
---> COLOCAR TUDO EM INGLES (> portugues)
---> DEFINIR TIPOS
---> COLOCAR IMAGENS (PRINTS)
-
 # Projeto de Haskell - Compilador
 
 ## Grupo:
@@ -20,25 +8,26 @@ decisions made when defining the data and functions defined in the program.
 |Sofia Resende Ferreira de Sá (up202108676)   | 50% |
 
 
-## Instalação e Execução
-
-Para executar o projeto, é necessário ter instalado o [GHC](https://www.haskell.org/ghc/) e dar download [...]
-
-
 ## Descrição do Projeto
 
-Para este projeto, foi-nos proposto a implementação de um compilador para uma máquina de baixo nível, que recebe como input um programa escrito numa linguagem de alto nível, converte-o para uma lista de intruções que a máquina de baixo nível consegue interpretar.
+
+For this project, we were proposed to implement a compiler for a high-level language, in order to run it on a low-level machine. The language went through several stages in order to be converted into a list of instructions that the machine can interpret.
+
+To do this, the project was divided into 2 parts, comprised of a total of 3 subtasks:
+- **Parser** *(Part 2.2)*: the Parser receives the input, which is a program written in a high-level language, and converts it into a list of tokens, from the lexer. Then, buildData receives the list of tokens and transforms it into `Data`, which is an internal representation of the program.
+- **Compiler** *(Part 2.1)*: receives the `Data` and converts it into low-level, assembly code, interpretable by the machine.
+- **Assembler** *(Part 1)*: receives the assembly code and executes it, producing the final output.
 
 
-Para tal, dividimos o projeto em 3 subtarefas:
-- Parser: inicialmente, o Parser recebe o input, que é um programa escrito numa linguagem de alto nível, e converte-o para uma lista de **tokens**, a partir do `lexer`. De seguida, `buildData` recebe a lista de tokens e transforma em `Data`, que é uma representação interna do programa. 
-- Compilador: recebe o `Data` e converte-o em código de máquina/assembled, de baixo nível, interpretável pela máquina.
-- Assembler: recebe o código de máquina/assembled e executa-o, produzindo o output final.
+## Project Execution
 
-Um exemplo de execução do programa é o seguinte:
+To run this project you need to compile the `main.hs` file. To execute the program in a small interface (which provides a visual execution of each step), run the command `main` in the terminal and provide the string with the code you want to run when prompted to. Example:
 
-<src img=".png" width="500"> **img**
+![main execution](./images/exec_1.png)
 
+For a more condensed execution, run the command `textParser <code>`.
+
+![textParser execution](./images/exec_2.png)
 
 
 ## Parser - NEW //sofia
@@ -51,41 +40,147 @@ This parser module is responsible for syntax analysis or parsing. It checks the 
 
 The parser recognizes the structure of various programming constructs, such as `if` statements, `while` loops, and variable assignments. It groups tokens into larger structures (like expressions, statements, and blocks) according to the rules of our language's grammar.
 
-The parser also handles errors. If it encounters a token sequence that doesn't match the grammar, it throws a syntax error with a message that helps the programmer locate and fix the mistake.
+The parser also handles errors. If it encounters a token sequence that doesn't match the grammar, it throws a syntax error.
 
 By creating a syntax tree, the parser makes the program's structure explicit and easy to work with. This sets the stage for the next phase of processing, which could be interpretation, compilation, or further analysis.
 
 
-## Parser - OLD
+## Parser
 
-### Lexer
+The **Parser module** acts as a bridge between the raw input program and the Compiler.  By calling the `lexer` (created in a different module - **Lexer module**) it ensures that the program is correctly tokenized , followed by the `buildData` which transforms the token sequence into the correct structure of the program, before it is passed to the Compiler for further processing.
 
-In our project, the Lexer_1.hs module plays a crucial role in the initial phase of processing the source code. It's responsible for lexical analysis, which is the process of converting a sequence of characters into a sequence of tokens.
+### Part I: Lexer
+
+In our project, the **Lexer module** plays a crucial role in the initial phase of processing the source code. It's responsible for lexical analysis, which is the process of converting a sequence of characters into a sequence of tokens.
 
 The lexer recognizes a variety of tokens, including keywords like "while", "do", "if", "then", "else", and "var". It also recognizes operators such as "+", "-", "*", and ":=", as well as parentheses, integers, boolean values, and the end of statement symbol ";".
 
 The VarTok token represents a variable, which always starts with a lowercase letter according to our language's syntax rules. The AssignTok token represents the assignment operator, which assigns a value to a variable.
 
-The lexer also includes an instance of the Eq class for the Token type. This allows us to compare tokens for equality, which is essential for the parser to correctly interpret the sequence of tokens.
+The `Token` data type represents all the possible tokens that the lexer can recognize. 
 
-By breaking down the source code into these tokens, the lexer simplifies the code into a format that's easier for the parser to handle. This sets the stage for the parser to analyze the token sequence according to the rules of our programming language's grammar.
+```haskell
+-- Token: A data type representing the different tokens that can be produced by the lexer.
+data Token
+    = OpenTok           -- "("
+    | CloseTok          -- ")"
+    -- Artithmetic
+    | AddTok            -- "+"
+    | MultTok           -- "*"
+    | SubTok            -- "-"
+    | IntTok Int        -- "123" -> int
+    -- Boolean
+    | TruTok            -- "True"
+    | FalsTok           -- "False"
+    | EqITok            -- "=="
+    | LeTok             -- "<="
+    | EqBTok            -- "="
+    | NotTok            -- "not"
+    | AndTok            -- "and"
+    -- While
+    | WhileTok          -- "while"
+    | DoTok             -- "do"
+    -- If
+    | IfTok             -- "if"
+    | ThenTok           -- "then"
+    | ElseTok           -- "else"
+    -- Variable
+    | VarTok String     -- "var" -> always starts with lowercase
+    | AssignTok         -- ":=" -> assign value to variable
+    -- end of statement
+    |EoSTok             -- ";"
+    deriving (Show)
+```
+
+By breaking down the source code into these **tokens**, the lexer simplifies the code into a format that's easier for the parser to handle. This sets the stage for the parser to analyze the token sequence according to the rules of our programming language's grammar.
+
+The main function of this module is the `lexer` function which takes a string and returns a list of tokens. It uses pattern matching to determine which token to return based on the current character. It uses the auxiliary functions lexDigit and lexAlpha to handle numbers and more complex tokens like keywords and variables, respectively.
+
+### Part II: buildData 
+
+The function `buildData` is responsible for syntax analysis or parsing. It checks the token sequence against the rules of our programming language's grammar, ensuring that the program is syntactically correct and generates the corresponding syntax tree.
+
+The parser recognizes the structure of various programming constructs, such as `if then else` statements, `while do` loops, variable assignments and arithmetic and boolean expressions. 
+
+To represent these constructs, the Parser module uses three data types:
+- `Aexp` represents arithmetic expressions, such as integer numbers, addition, multiplication and subtraction. Includes standalone variables.
+
+```haskell
+-- Aexp: Data type that represents arithmetic expressions
+data Aexp --arithmetic expressions
+    = NUM Integer -- integer constants
+    | ADD Aexp Aexp -- addition node
+    | MULT Aexp Aexp -- multiplication node
+    | SUB Aexp Aexp -- subtraction node
+    | VAR String -- get the value of a variable
+    deriving Show
+```
+
+- `Bexp` represents boolean expressions, such as boolean values, logical AND, logical NOT, equality and less than or equal to.
+
+```haskell	
+-- Bexp: Data type that represents boolean expressions
+data Bexp --boolean expressions
+    = BOOL Bool -- boolean constants
+    | AND Bexp Bexp -- and node
+    | NOT Bexp -- not node
+    | EQa Aexp Aexp -- equal node --
+    | EQb Bexp Bexp -- equal node 
+    | LE Aexp Aexp -- less than or equal node
+    deriving Show
+```
+
+- `Stm` higher level data type represents more complex statements such as ifs, whiles and variable assignments, in addition to the Bexp and Aexp data types.
+
+```haskell
+-- Stm: Data type that represents statements
+data Stm --statements
+    = STORE String Aexp-- store node
+    | IF Bexp [Stm] [Stm] -- if node
+    | WHILE Bexp [Stm] -- loop node
+    | AExp Aexp
+    | BExp Bexp
+    deriving Show
+```
+
+The `buildData` function parses the tokens by calling the `parseStms` which recursively handles the parsing of each statement. The function `parseStm` parses a single statement by calling the adequate specialized parser function, depending on the type of statement.  These functions are:
+- `parseIf`, which handles the parsing of `if then else` statements. It checks for the presence of the If, Then, and Else tokens and recursively calls parseBexp and parseStm to parse the condition and the then/else branches of the statement, respectively. This branches can either be a single statement or a block of statements, between parentheses. 
+- `parseWhile`, which handles the parsing of `while do` statements. It checks for the presence of the While and Do tokens and recursively calls parseBexp and parseStm to parse the condition and the body of the loop.
+parseAssign, which handles the parsing of assignment statements. It checks for the presence of the Assign token and calls parseAexp to parse the expression being assigned to the variable.
+- `parseStore`, which handles the parsing of variable assignment statements. It checks for the presence of the Store token and calls parseAexp to parse the expression being assigned to the variable.
+- `parseBexpOrAexp`, which handles the parsing of standalone arithmetic and boolean expressions. 
+
+This last function has several auxiliary functions, that start to handle the expressions according to their level of precedence. This functions are named in the form `<Operation>OrHigher` where operation means what is currently being handled and higher means that the function handles the other operations with higher precedence. These are characterized by the following pattern:
+- calling the function that handles the operations with higher precedence
+- checking if the current token is of the type of the operation being handled
+- if so, creating the corresponding expression, otherwise returning the expression created by the function that handles the operations with higher precedence.
+Aspect taken into account is the associativity of operations, in order to guarantee correct results.
 
 
 
-### BuildData (gerado pelo copilot)
 
-The BuildData_1.hs module is responsible for converting the token sequence into a Data type, which is an internal representation of the program. This is the first step in the process of compiling the source code into machine code. The Data type is a list of instructions, which are represented by the Instr type. The Instr type is a sum type that can represent a variety of instructions, including arithmetic operations, boolean operations, and control flow operations. The Data type also includes a list of variables, which are represented by the Var type. The Var type is a sum type that can represent a variety of variables, including integers, booleans, and lists.
-
-
-
-## Compiler
+ 
+<!-- !TODO: !WARNING:  VERIFICAR RESTO DO TEXTO -->
 
 
-The Compiler_3.hs module in our project is responsible for the compilation process of our programming language. It takes the abstract syntax tree (AST) produced by the parser and generates a sequence of instructions that can be executed by the virtual machine.
+The syntax tree generated by the Parser module is a hierarchical structure that represents the organization of the source code. Each node in the tree corresponds to a construct or element in the source code. For instance, an `if then else` statement would be represented as a tree with an `if` node that has three children: one for the condition, one for the `then` branch, and one for the `else` branch.
+
+The Parser module uses the tokens provided by the Lexer module to build this tree. It starts with the first token and tries to match the sequence of tokens against the rules of the grammar. If a valid match is found, a node is created in the syntax tree. This process continues until all tokens have been processed or an error is encountered.
+
+<!-- In case of an error, the Parser module provides meaningful error messages that help in identifying and correcting the syntax error. This makes the process of writing and debugging code in our programming language more efficient and user-friendly. -->
+
+By generating a syntax tree, the Parser module sets the stage for the next phases of the compilation process, such as semantic analysis and code generation. The syntax tree is a crucial data structure that is used in these later stages to understand the program structure and to generate the corresponding machine code.
+
+
+
+## Compiler - DONE
+
+
+The **Compiler module** is responsible for the compilation process. It takes the abstract syntax tree (AST) produced by the parser and generates a sequence of instructions that can be executed by the machine.
 
 The module defines several functions for compiling different types of expressions:
 
-- `compA` compiles arithmetic expressions (`Aexp`). It handles integer numbers (`NUM`), addition (`ADD`), multiplication (`MULT`), and subtraction (`SUB`).
+- `compA` compiles arithmetic expressions (`Aexp`). It handles integer numbers (`NUM`), addition (`ADD`), multiplication (`MULT`) and subtraction (`SUB`). It also handles standalone variables (`VAR`).
 
 - `compB` compiles boolean expressions (`Bexp`). It handles boolean values (`BOOL`), logical AND (`AND`), logical NOT (`NOT`), equality of arithmetic expressions (`EQa`), equality of boolean expressions (`EQb`), and less than or equal to (`LE`).
 
@@ -93,34 +188,51 @@ The module defines several functions for compiling different types of expression
 
 The `compile` function is recursive, allowing it to handle a list of statements. For each statement, it generates the appropriate instructions and then recursively compiles the rest of the list.
 
-*The module also includes a `runTests function, which tests the compiler with various expressions and statements. This helps ensure that the compiler is working correctly.*
 
-The Compiler.hs module is a crucial part of our project, transforming the parsed source code into a format that can be executed by the virtual machine.
+## Assembler - DONE
 
-
-
-
-## Assembler
-
-The Assembler_4.hs module in our project is responsible for the execution of the compiled code. It defines an abstract machine that executes the instructions generated by the compiler.
+The **Assembler module** is responsible for the execution of the compiled code. It defines an abstract machine that executes the instructions generated by the compiler.
 
 The module defines several data types:
 
 - `Inst` represents the instructions that the machine can execute. These include arithmetic operations (`Push`, `Add`, `Mult`, `Sub`), boolean operations (`Tru`, `Fals`, `Equ`, `Le`, `And`, `Neg`), variable operations (`Fetch`, `Store`), and control flow operations (`Branch`, `Loop`).
+- `Code` is a type alias for a list of instructions (Inst).
 
-- `StackItem` represents the items that can be stored on the stack. These include integers (`N`) and boolean values (`B`).
+```haskell
+-- Inst: A data type representing the different instructions that can be executed by the stack machine.
+data Inst =
+  Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
+  Branch Code Code | Loop Code Code
+  deriving Show
+-- Code: A type alias for a list of instructions.
+type Code = [Inst]
+```
 
-- `State` represents the state of the machine, which is a list of variable-value pairs.
+- `ItemBool` is a data type represents the boolean values (TT for True, FF for False) that can be stored on the stack.
 
-The module also defines several functions:
+- `StackItem`: This data type represents the different types of items that can be stored on the stack. It can be either an integer (N Integer) or a boolean (B ItemBool).
 
-- `run` executes the instructions. It takes a tuple of the remaining code, the current stack, and the current state, and returns the updated tuple after executing the next instruction. The function is recursive, allowing it to execute a list of instructions.
+```haskell
+-- ItemBool: A data type representing the stack's and state's boolean values.
+data ItemBool = TT | FF deriving Show
+-- StackItem: A data type representing the different types of items that can be stored on the stack.
+data StackItem = N Integer | B ItemBool deriving Show
+```
 
-- `updateState` updates the state by adding a new variable-value pair or updating the value of an existing variable.
+- `Stack` is a type alias for a list of stack items (StackItem).
 
-- `testAssembler` tests the assembler with a list of instructions. It returns the final stack and state as strings.
+- `State` is a type alias for a list of key-value pairs, representing the state of the stack machine. Each pair consists of a variable name (String) and its corresponding value (StackItem).
 
-The Assembler.hs module is a crucial part of our project, executing the instructions generated by the compiler and maintaining the state of the machine.
+```haskell
+-- Stack: A type alias for a list of stack items.
+type Stack =  [StackItem]
+-- State: A type alias for a list of key-value pairs, representing the state of the stack machine.
+type State = [(String, StackItem)]
+```
+
+This module also defines several functions for manipulating the stack and the state, converting stack items, stack, and state into strings, and updating the state with new key-value pairs.
+
+The most important function in this file is `run`, which takes a tuple of code, stack, and state, and executes the code on the machine. It uses pattern matching to determine which instruction to execute based on the current state of the machine. The function is recursive, meaning it continues to call itself until all the instructions have been executed.
 
 
 ## Exemplos de Execução para cada parte do projeto
@@ -170,10 +282,9 @@ Final State: [("x",N 10),("y",N 1024)]
 
 ## Conclusões
 
-Em suma, este projeto permitiu-nos consolidar os conhecimentos adquiridos ao longo das aulas teóricas e práticas, nomeadamente sobre a linguagem Haskell e a sua sintaxe, mas também levou à exploração de um assunto novo e relevante - estudar o funcionamento e implementação de um compilador.
+In summary, this project allowed us to consolidate the knowledge acquired throughout the theoretical and practical classes, namely about the Haskell language and its syntax, but also led to the exploration of a new and relevant subject - studying the operation and implementation of a compiler.
 
-Através da realização deste projeto, conseguimos compreender melhor o funcionamento de um compilador, desde a análise léxica e sintática, até à geração de código de máquina e execução do mesmo, tendo sido uma tarefa desafiante.
-
+Through the completion of this project, we were able to better understand the operation of a compiler, from lexical and syntactic analysis, to the generation of machine code and its execution. All in all, it was a challenging but enriching task and was succcessfully completed.
 
 
 

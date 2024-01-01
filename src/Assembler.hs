@@ -1,5 +1,6 @@
 -- =================== ASSEMBLER ===========================
-module Assembler_4 where
+
+module Assembler where
 
 import Data.List (sortOn)
 

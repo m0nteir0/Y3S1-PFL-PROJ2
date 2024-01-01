@@ -1,8 +1,9 @@
 -- =================== COMPILER ===========================
-module Compiler_3 where
 
-import Assembler_4
-import Parser_2
+module Compiler where
+
+import Assembler
+import Parser
 
 -- compA: Compiles an arithmetic expression (Aexp) into the corresponding list of instructions (Code). 
 -- It handles numbers, addition, multiplication, subtraction, and numeric variables.
