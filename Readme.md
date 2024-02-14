@@ -1,5 +1,7 @@
 # Haskell Project - Compiler
 
+Grade: 19.67/20.0
+
 ## Group T06_G02
 
 |Name | Contribution |
